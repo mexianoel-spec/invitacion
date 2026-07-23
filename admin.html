@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Monserrat &amp; Noel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --olivo:#39422C;
+    --olivo-hondo:#232A1A;
+    --panel:#2F3724;
+    --salvia:#8E9A78;
+    --laton:#B79B62;
+    --marfil:#F4F1E6;
+    --tenue:rgba(244,241,230,.6);
+    --linea:rgba(183,155,98,.28);
+    --si:#8E9A78;
+    --no:#C98B72;
+    --display:"Cormorant Garamond",Georgia,serif;
+    --cuerpo:"Jost",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--olivo-hondo);color:var(--marfil);font-family:var(--cuerpo);font-weight:300;font-size:15px;line-height:1.6}
+  .eyebrow{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--laton)}
+  .envoltura{width:min(1180px,94vw);margin-inline:auto;padding:2.4rem 0 5rem}
+
+  /* candado */
+  .candado{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:2rem}
+  .candado .caja{width:min(380px,100%);border:1px solid var(--linea);background:var(--panel);padding:2.6rem;text-align:center}
+  .candado h1{font-family:var(--display);font-weight:300;font-size:2rem;margin:.8rem 0 1.8rem}
+  input,select{font-family:var(--cuerpo);font-size:.95rem;font-weight:300;background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.72rem .9rem;width:100%}
+  input:focus,select:focus{outline:2px solid var(--laton);outline-offset:1px}
+  .error{color:var(--no);font-size:.85rem;margin-top:.8rem;min-height:1.2em}
+
+  header.barra{border-bottom:1px solid var(--linea);background:var(--panel)}
+  header.barra .envoltura{padding:1.3rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+  header.barra h1{font-family:var(--display);font-weight:300;font-size:1.6rem}
+
+  .pestanas{display:flex;gap:0;border-bottom:1px solid var(--linea);margin-bottom:2rem;flex-wrap:wrap}
+  .pestanas button{background:none;border:0;border-bottom:2px solid transparent;color:var(--tenue);font-family:var(--cuerpo);font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;padding:1rem 1.4rem;cursor:pointer;transition:color .25s,border-color .25s}
+  .pestanas button[aria-selected="true"]{color:var(--laton);border-color:var(--laton)}
+
+  .btn{display:inline-block;padding:.7rem 1.3rem;border:1px solid var(--laton);background:transparent;color:var(--laton);font-family:var(--cuerpo);font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:background .25s,color .25s}
+  .btn:hover{background:var(--laton);color:var(--olivo-hondo)}
+  .btn.solido{background:var(--laton);color:var(--olivo-hondo)}
+  .btn.solido:hover{opacity:.85}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn.mini{padding:.34rem .6rem;font-size:.55rem;letter-spacing:.12em}
+
+  .acciones{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1.6rem}
+
+  .metricas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
+  .metrica{border:1px solid var(--linea);background:var(--panel);padding:1.3rem}
+  .metrica strong{display:block;font-family:var(--display);font-size:2.4rem;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+  .metrica small{display:block;margin-top:.5rem;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tenue)}
+  .metrica.si strong{color:var(--si)} .metrica.no strong{color:var(--no)}
+
+  .filtros{display:grid;grid-template-columns:2fr 1fr 1fr;gap:.8rem;margin-bottom:1.2rem}
+  @media(max-width:680px){.filtros{grid-template-columns:1fr}}
+
+  .tabla-marco{border:1px solid var(--linea);overflow-x:auto;background:var(--panel)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{background:var(--olivo);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;text-align:left;padding:.85rem .9rem;color:var(--marfil);white-space:nowrap;position:sticky;top:0}
+  td{padding:.75rem .9rem;border-top:1px solid rgba(183,155,98,.14);vertical-align:middle}
+  tbody tr:hover{background:rgba(183,155,98,.06)}
+  .pill{display:inline-block;padding:.2rem .6rem;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor}
+  .pill.si{color:var(--si)} .pill.no{color:var(--no)} .pill.pendiente{color:var(--tenue)}
+  .link-celda{font-size:.74rem;color:var(--tenue);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vacio{padding:2.6rem;text-align:center;color:var(--tenue)}
+  .nota{font-size:.85rem;color:var(--tenue);margin-top:1rem}
+  .zona{border:1px dashed var(--linea);padding:2rem;text-align:center;margin-bottom:1.6rem;background:var(--panel)}
+  .zona p{color:var(--tenue);font-size:.9rem;margin-bottom:1rem}
+  :focus-visible{outline:2px solid var(--laton);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ CANDADO ═══════════ -->
+<div class="candado" id="candado">
+  <div class="caja">
+    <p class="eyebrow">Panel de administración</p>
+    <h1>Monserrat &amp; Noel</h1>
+    <input type="password" id="clave" placeholder="Contraseña" autocomplete="current-password">
+    <p class="error" id="error-clave"></p>
+    <button class="btn solido" id="btn-entrar" style="width:100%;margin-top:.4rem">Entrar</button>
+  </div>
+</div>
+
+<!-- ═══════════ PANEL ═══════════ -->
+<div id="panel" hidden>
+
+  <header class="barra">
+    <div class="envoltura">
+      <div>
+        <p class="eyebrow">Panel de administración</p>
+        <h1>Monserrat &amp; Noel</h1>
+      </div>
+      <button class="btn" id="btn-salir">Salir</button>
+    </div>
+  </header>
+
+  <div class="envoltura">
+
+    <div class="pestanas" role="tablist">
+      <button role="tab" aria-selected="true"  data-vista="confirmaciones">Confirmaciones</button>
+      <button role="tab" aria-selected="false" data-vista="invitados">Lista e invitaciones</button>
+    </div>
+
+    <!-- ── CONFIRMACIONES ── -->
+    <section id="vista-confirmaciones">
+      <div class="acciones">
+        <button class="btn solido" id="btn-refrescar">Actualizar datos</button>
+        <button class="btn" id="btn-excel">Descargar Excel</button>
+        <button class="btn" id="btn-csv">Descargar CSV</button>
+        <span class="nota" id="sello"></span>
+      </div>
+
+      <div class="metricas">
+        <div class="metrica"><strong id="m-invitaciones">0</strong><small>Invitaciones</small></div>
+        <div class="metrica si"><strong id="m-si">0</strong><small>Asisten</small></div>
+        <div class="metrica no"><strong id="m-no">0</strong><small>No asisten</small></div>
+        <div class="metrica"><strong id="m-pendientes">0</strong><small>Sin responder</small></div>
+        <div class="metrica"><strong id="m-pases">0</strong><small>Pases confirmados</small></div>
+      </div>
+
+      <div class="filtros">
+        <input type="search" id="buscar" placeholder="Buscar por nombre o id…">
+        <select id="filtro-respuesta">
+          <option value="">Todas las respuestas</option>
+          <option value="si">Asisten</option>
+          <option value="no">No asisten</option>
+          <option value="pendiente">Sin responder</option>
+        </select>
+        <select id="filtro-grupo">
+          <option value="">Ambos lados</option>
+          <option value="novia">Lado novia</option>
+          <option value="novio">Lado novio</option>
+        </select>
+      </div>
+
+      <div class="tabla-marco">
+        <table>
+          <thead>
+            <tr><th>Invitado</th><th>Id</th><th>Pases</th><th>Lado</th><th>Respuesta</th><th>Actualizado</th><th></th></tr>
+          </thead>
+          <tbody id="cuerpo-confirmaciones"></tbody>
+        </table>
+        <div class="vacio" id="vacio-confirmaciones">Sin datos todavía. Presiona “Actualizar datos”.</div>
+      </div>
+    </section>
+
+    <!-- ── INVITADOS ── -->
+    <section id="vista-invitados" hidden>
+      <div class="zona">
+        <p>Sube tu archivo <strong>lista-invitados.xlsx</strong> para generar el archivo <strong>invitados.json</strong> y los links personalizados.</p>
+        <input type="file" id="archivo" accept=".xlsx,.xls" style="max-width:340px;margin-inline:auto">
+      </div>
+
+      <div class="acciones">
+        <button class="btn solido" id="btn-json" disabled>Descargar invitados.json</button>
+        <button class="btn" id="btn-links" disabled>Descargar links en Excel</button>
+        <span class="nota" id="aviso-carga"></span>
+      </div>
+
+      <div class="tabla-marco">
+        <table>
+          <thead>
+            <tr><th>Invitado</th><th>Id</th><th>Pases</th><th>Lado</th><th>Link</th><th></th></tr>
+          </thead>
+          <tbody id="cuerpo-invitados"></tbody>
+        </table>
+        <div class="vacio" id="vacio-invitados">Todavía no has cargado la lista.</div>
+      </div>
+
+      <p class="nota">El archivo <strong>invitados.json</strong> va en la misma carpeta que <strong>index.html</strong>, en tu repositorio. Cada vez que edites el Excel, vuelve a generarlo y súbelo. Se genera sin teléfonos, porque ese archivo queda visible en internet — para mandar los links por WhatsApp carga aquí tu Excel y usa los botones de esta tabla.</p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ═══════════ CONFIGURACIÓN — edita estas tres líneas ═══════════ */
+  var CONFIG = {
+    CLAVE:      "cambia-esta-clave",
+    URL_SCRIPT: "PEGA_AQUI_LA_URL_DEL_APPS_SCRIPT",
+    TOKEN:      "cambia-esta-palabra-secreta",   // el mismo TOKEN_ADMIN del Apps Script
+    BASE_URL:   "https://tuboda.github.io/invitacion/",
+    WHATSAPP_PLANTILLA: "Hola {nombre}, con mucho gusto los invitamos a nuestra boda el domingo 15 de noviembre. Aquí está su invitación: {link}"
+  };
+  /* ══════════════════════════════════════════════════════════════ */
+
+  var $ = function(s){ return document.querySelector(s); };
+
+  /* ---------- Candado ---------- */
+  function entrar(){
+    if ($("#clave").value === CONFIG.CLAVE) {
+      $("#candado").hidden = true;
+      $("#panel").hidden = false;
+      cargarListaPublicada();
+      traerConfirmaciones();
+    } else {
+      $("#error-clave").textContent = "Contraseña incorrecta.";
+      $("#clave").value = "";
+      $("#clave").focus();
+    }
+  }
+  $("#btn-entrar").addEventListener("click", entrar);
+  $("#clave").addEventListener("keydown", function(e){ if (e.key === "Enter") entrar(); });
+  $("#btn-salir").addEventListener("click", function(){ location.reload(); });
+
+  /* ---------- Pestañas ---------- */
+  document.querySelectorAll(".pestanas button").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".pestanas button").forEach(function(o){ o.setAttribute("aria-selected", o === b); });
+      $("#vista-confirmaciones").hidden = b.dataset.vista !== "confirmaciones";
+      $("#vista-invitados").hidden      = b.dataset.vista !== "invitados";
+    });
+  });
+
+  /* ---------- Estado ---------- */
+  var LISTA = {};        // id -> {nombre, pases, telefono, grupo}
+  var REGISTROS = [];    // respuestas del Apps Script
+  var FILAS = [];        // unión de ambas
+
+  /* ---------- Lista publicada ---------- */
+  function cargarListaPublicada(){
+    fetch("invitados.json")
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+      .then(function(d){ LISTA = d; pintarInvitados(); unir(); })
+      .catch(function(){});
+  }
+
+  /* ---------- Confirmaciones ---------- */
+  function traerConfirmaciones(){
+    if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) {
+      $("#sello").textContent = "Falta configurar la URL del Apps Script.";
+      return;
+    }
+    $("#sello").textContent = "Consultando…";
+
+    fetch(CONFIG.URL_SCRIPT + "?accion=listar&token=" + encodeURIComponent(CONFIG.TOKEN))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) throw new Error(d.error);
+        REGISTROS = d.registros || [];
+        var h = new Date();
+        $("#sello").textContent = "Actualizado " + h.toLocaleString("es-MX", {hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short"});
+        unir();
+      })
+      .catch(function(e){ $("#sello").textContent = "No se pudo consultar: " + e.message; });
+  }
+  $("#btn-refrescar").addEventListener("click", traerConfirmaciones);
+
+  function unir(){
+    var porId = {};
+    REGISTROS.forEach(function(r){ porId[String(r.id).toLowerCase()] = r; });
+
+    var ids = Object.keys(LISTA).length ? Object.keys(LISTA) : Object.keys(porId);
+
+    FILAS = ids.map(function(id){
+      var base = LISTA[id] || {};
+      var reg  = porId[id] || {};
+      return {
+        id: id,
+        nombre: base.nombre || reg.nombre || id,
+        pases: Number(base.pases || reg.pases || 0),
+        grupo: base.grupo || reg.grupo || "",
+        telefono: base.telefono || reg.telefono || "",
+        respuesta: reg.respuesta || "pendiente",
+        actualizado: reg.marca_tiempo || ""
+      };
+    });
+
+    pintarMetricas();
+    pintarConfirmaciones();
+  }
+
+  function pintarMetricas(){
+    var si = FILAS.filter(function(f){ return f.respuesta === "si"; });
+    var no = FILAS.filter(function(f){ return f.respuesta === "no"; });
+    var pd = FILAS.filter(function(f){ return f.respuesta === "pendiente"; });
+    $("#m-invitaciones").textContent = FILAS.length;
+    $("#m-si").textContent = si.length;
+    $("#m-no").textContent = no.length;
+    $("#m-pendientes").textContent = pd.length;
+    $("#m-pases").textContent = si.reduce(function(a,f){ return a + f.pases; }, 0);
+  }
+
+  function filtradas(){
+    var q  = $("#buscar").value.trim().toLowerCase();
+    var fr = $("#filtro-respuesta").value;
+    var fg = $("#filtro-grupo").value;
+    return FILAS.filter(function(f){
+      if (fr && f.respuesta !== fr) return false;
+      if (fg && f.grupo !== fg) return false;
+      if (q && (f.nombre + " " + f.id).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+
+  function etiqueta(r){
+    if (r === "si") return '<span class="pill si">Asiste</span>';
+    if (r === "no") return '<span class="pill no">No asiste</span>';
+    return '<span class="pill pendiente">Sin responder</span>';
+  }
+
+  function pintarConfirmaciones(){
+    var datos = filtradas();
+    var cuerpo = $("#cuerpo-confirmaciones");
+    cuerpo.innerHTML = "";
+    $("#vacio-confirmaciones").hidden = datos.length > 0;
+
+    datos.forEach(function(f){
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + escapar(f.nombre) + "</td>" +
+        "<td class='link-celda'>" + escapar(f.id) + "</td>" +
+        "<td>" + f.pases + "</td>" +
+        "<td>" + escapar(f.grupo) + "</td>" +
+        "<td>" + etiqueta(f.respuesta) + "</td>" +
+        "<td class='link-celda'>" + escapar(f.actualizado) + "</td>" +
+        "<td>" + (f.telefono ? "<a class='btn mini' target='_blank' rel='noopener' href='https://wa.me/52" + f.telefono.replace(/\D/g,"").slice(-10) + "'>WhatsApp</a>" : "") + "</td>";
+      cuerpo.appendChild(tr);
+    });
+  }
+
+  ["#buscar", "#filtro-respuesta", "#filtro-grupo"].forEach(function(s){
+    $(s).addEventListener("input", pintarConfirmaciones);
+  });
+
+  /* ---------- Exportar ---------- */
+  function tablaExport(){
+    return filtradas().map(function(f){
+      return {
+        Invitado: f.nombre, Id: f.id, Pases: f.pases, Lado: f.grupo,
+        Respuesta: f.respuesta === "si" ? "Asiste" : f.respuesta === "no" ? "No asiste" : "Sin responder",
+        Telefono: f.telefono, Actualizado: f.actualizado
+      };
+    });
+  }
+
+  $("#btn-excel").addEventListener("click", function(){
+    var hoja = XLSX.utils.json_to_sheet(tablaExport());
+    var libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Confirmaciones");
+    XLSX.writeFile(libro, "confirmaciones-boda.xlsx");
+  });
+
+  $("#btn-csv").addEventListener("click", function(){
+    var datos = tablaExport();
+    if (!datos.length) return;
+    var enc = Object.keys(datos[0]);
+    var lineas = [enc.join(",")].concat(datos.map(function(d){
+      return enc.map(function(k){ return '"' + String(d[k] == null ? "" : d[k]).replace(/"/g,'""') + '"'; }).join(",");
+    }));
+    descargar("confirmaciones-boda.csv", "\ufeff" + lineas.join("\n"), "text/csv;charset=utf-8");
+  });
+
+  /* ---------- Carga del Excel ---------- */
+  $("#archivo").addEventListener("change", function(ev){
+    var f = ev.target.files[0];
+    if (!f) return;
+    var lector = new FileReader();
+
+    lector.onload = function(e){
+      try {
+        var libro = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+        var nombreHoja = libro.SheetNames.indexOf("Invitados") >= 0 ? "Invitados" : libro.SheetNames[0];
+        var filas = XLSX.utils.sheet_to_json(libro.Sheets[nombreHoja], { defval: "" });
+
+        LISTA = {};
+        var repetidos = [];
+        filas.forEach(function(r){
+          var id = String(r.id || "").trim().toLowerCase();
+          if (!id) return;
+          if (LISTA[id]) repetidos.push(id);
+          LISTA[id] = {
+            nombre: String(r.nombre_a_mostrar || "").trim(),
+            pases: Number(r.pases) || 1,
+            telefono: String(r.telefono || "").replace(/\D/g, ""),
+            grupo: String(r.grupo || "").trim().toLowerCase()
+          };
+        });
+
+        var n = Object.keys(LISTA).length;
+        $("#aviso-carga").textContent = n + " invitaciones cargadas" +
+          (repetidos.length ? " · ¡Ojo! ids repetidos: " + repetidos.join(", ") : "");
+        $("#btn-json").disabled = n === 0;
+        $("#btn-links").disabled = n === 0;
+        pintarInvitados();
+        unir();
+      } catch (err) {
+        $("#aviso-carga").textContent = "No se pudo leer el archivo: " + err.message;
+      }
+    };
+    lector.readAsArrayBuffer(f);
+  });
+
+  function linkDe(id){ return CONFIG.BASE_URL + "?id=" + encodeURIComponent(id); }
+
+  function pintarInvitados(){
+    var ids = Object.keys(LISTA);
+    var cuerpo = $("#cuerpo-invitados");
+    cuerpo.innerHTML = "";
+    $("#vacio-invitados").hidden = ids.length > 0;
+    $("#btn-json").disabled = ids.length === 0;
+    $("#btn-links").disabled = ids.length === 0;
+
+    ids.forEach(function(id){
+      var g = LISTA[id];
+      var link = linkDe(id);
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + escapar(g.nombre) + "</td>" +
+        "<td class='link-celda'>" + escapar(id) + "</td>" +
+        "<td>" + g.pases + "</td>" +
+        "<td>" + escapar(g.grupo) + "</td>" +
+        "<td class='link-celda'>" + escapar(link) + "</td>" +
+        "<td style='white-space:nowrap'>" +
+          "<button class='btn mini' data-copiar='" + escapar(link) + "'>Copiar</button> " +
+          (g.telefono
+            ? "<a class='btn mini' target='_blank' rel='noopener' href='https://wa.me/52" + g.telefono.slice(-10) +
+              "?text=" + encodeURIComponent(CONFIG.WHATSAPP_PLANTILLA.replace("{nombre}", g.nombre).replace("{link}", link)) +
+              "'>Enviar</a>"
+            : "") +
+        "</td>";
+      cuerpo.appendChild(tr);
+    });
+
+    cuerpo.querySelectorAll("[data-copiar]").forEach(function(b){
+      b.addEventListener("click", function(){
+        navigator.clipboard.writeText(b.dataset.copiar).then(function(){
+          var t = b.textContent; b.textContent = "Copiado";
+          setTimeout(function(){ b.textContent = t; }, 1400);
+        });
+      });
+    });
+  }
+
+  $("#btn-json").addEventListener("click", function(){
+    /* El invitados.json queda publicado en internet, así que sale SIN teléfonos.
+       Los botones de WhatsApp de arriba usan el Excel que cargaste en esta sesión. */
+    var publico = {};
+    Object.keys(LISTA).forEach(function(id){
+      publico[id] = { nombre: LISTA[id].nombre, pases: LISTA[id].pases, grupo: LISTA[id].grupo };
+    });
+    descargar("invitados.json", JSON.stringify(publico, null, 2), "application/json");
+  });
+
+  $("#btn-links").addEventListener("click", function(){
+    var datos = Object.keys(LISTA).map(function(id){
+      return { Invitado: LISTA[id].nombre, Id: id, Pases: LISTA[id].pases,
+               Lado: LISTA[id].grupo, Telefono: LISTA[id].telefono, Link: linkDe(id) };
+    });
+    var libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.json_to_sheet(datos), "Links");
+    XLSX.writeFile(libro, "links-invitaciones.xlsx");
+  });
+
+  /* ---------- Utilidades ---------- */
+  function descargar(nombre, contenido, tipo){
+    var url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+    var a = document.createElement("a");
+    a.href = url; a.download = nombre; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 800);
+  }
+
+  function escapar(t){
+    return String(t == null ? "" : t)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+})();
+</script>
+</body>
+</html>
