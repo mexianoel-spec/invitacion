@@ -1093,8 +1093,8 @@
     background-size:cover;
     background-position:center 42%;
     filter:grayscale(1) brightness(.9);
-    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
     opacity:0;
     transition:opacity .6s ease;
   }
@@ -1116,8 +1116,8 @@
     background-size:cover;
     background-position:center center;
     z-index:4;
-    clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
-    -webkit-clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
+    clip-path:polygon(0% 56.7%, 100% 56.7%, 100% 100%, 0% 100%);
+    -webkit-clip-path:polygon(0% 56.7%, 100% 56.7%, 100% 100%, 0% 100%);
     opacity:1;
     transition:opacity .9s ease;
   }
@@ -1128,12 +1128,9 @@
      superior con un movimiento visible. */
   .sobre-solapa{
     position:absolute; inset:0;
-    background-image:var(--sobre-cuerpo, none);
+    background-image:var(--sobre-solapa, none);
     background-size:cover;
-    background-position:center center;
-    background-color:#3f4a31;
-    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    background-position:center top;
     transform-origin:top center;
     transform:scaleY(1);
     transition:transform 2.4s cubic-bezier(.5,.04,.4,1);
@@ -1145,11 +1142,17 @@
   .sobre-solapa::after{
     content:"";
     position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(20,26,14,.05) 0%, rgba(20,26,14,.5) 100%);
+    background:linear-gradient(180deg, rgba(20,26,14,.05) 0%, rgba(20,26,14,.45) 100%);
     opacity:0;
     transition:opacity 2.4s ease;
-    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    -webkit-mask-image:var(--sobre-solapa, none);
+    mask-image:var(--sobre-solapa, none);
+    -webkit-mask-size:cover;
+    mask-size:cover;
+    -webkit-mask-position:center top;
+    mask-position:center top;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
   }
   /* la solapa se pliega hacia arriba (scaleY→0 desde la bisagra superior),
      revelando gradualmente la foto que está detrás, dentro del triángulo. */
@@ -1163,8 +1166,8 @@
     z-index:2;
     background:#232a1a;
     background-image:linear-gradient(180deg, #1a2011 0%, #2a3320 55%, #303a24 100%);
-    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
     opacity:0;
     transition:opacity .5s ease;
   }
@@ -1173,7 +1176,7 @@
   /* sello: más grande y centrado en la unión, cubriendo las intersecciones */
   .sello{
     position:absolute;
-    top:52.9%; left:50%;
+    top:56.7%; left:50%;
     transform:translate(-50%,-50%);
     width:clamp(132px,36vw,190px);
     aspect-ratio:1;
@@ -1651,8 +1654,11 @@
     }
     set("sobre-cuerpo", "--sobre-cuerpo", cfg.cuerpo);
     set("sobre-tapa-inferior", "--sobre-cuerpo", cfg.cuerpo);
-    set("sobre-solapa", "--sobre-cuerpo", cfg.cuerpo);
+    set("sobre-solapa", "--sobre-solapa", cfg.solapa);
     set("sello", "--sello", cfg.sello);
+    // el ::after de la solapa también necesita la imagen para su máscara
+    var sol = document.getElementById("sobre-solapa");
+    if (sol && cfg.solapa) sol.style.setProperty("--sobre-solapa", 'url("' + cfg.solapa + '")');
 
     document.body.style.overflow = "hidden";
 
