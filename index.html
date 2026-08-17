@@ -1088,7 +1088,7 @@
   /* foto B/N dentro del triángulo de la solapa (punta en la unión) */
   .sobre-foto{
     position:absolute; inset:0;
-    z-index:2;
+    z-index:3;
     background-image:var(--foto-gris, none);
     background-size:cover;
     background-position:center 42%;
@@ -1096,9 +1096,9 @@
     clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     opacity:0;
-    transition:opacity .01s;
+    transition:opacity .6s ease;
   }
-  .sobre.abriendo .sobre-foto{ opacity:1; }
+  .sobre.abriendo .sobre-foto{ opacity:1; transition:opacity .7s ease 1.7s; }
   .sobre-foto.expandir{
     clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
@@ -1115,7 +1115,7 @@
     background-image:var(--sobre-cuerpo, none);
     background-size:cover;
     background-position:center center;
-    z-index:3;
+    z-index:4;
     clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
     -webkit-clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
     opacity:1;
@@ -1124,7 +1124,8 @@
   .sobre-tapa-inferior.ocultar{ opacity:0; }
 
   /* solapa superior (misma imagen, cover, recortada en el triángulo de arriba):
-     coincide exactamente con la solapa del sobre. Gira sobre la bisagra. */
+     coincide exactamente con la solapa del sobre. Gira sobre la bisagra
+     superior con un movimiento visible. */
   .sobre-solapa{
     position:absolute; inset:0;
     background-image:var(--sobre-cuerpo, none);
@@ -1134,31 +1135,38 @@
     clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     transform-origin:top center;
-    transition:transform 1.7s cubic-bezier(.35,.15,.25,1);
-    z-index:4;
+    transform:scaleY(1);
+    transition:transform 2.4s cubic-bezier(.5,.04,.4,1);
+    z-index:5;
     will-change:transform;
   }
+  /* sombra sobre la cara de la solapa que se oscurece conforme se pliega,
+     dando la sensación de que se levanta. */
   .sobre-solapa::after{
     content:"";
     position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.4) 100%);
+    background:linear-gradient(180deg, rgba(20,26,14,.05) 0%, rgba(20,26,14,.5) 100%);
     opacity:0;
-    transition:opacity 1.7s ease;
+    transition:opacity 2.4s ease;
     clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
   }
-  .sobre.abriendo .sobre-solapa{ transform:rotateX(-176deg); z-index:1; }
+  /* la solapa se pliega hacia arriba (scaleY→0 desde la bisagra superior),
+     revelando gradualmente la foto que está detrás, dentro del triángulo. */
+  .sobre.abriendo .sobre-solapa{ transform:scaleY(0.02); z-index:1; }
   .sobre.abriendo .sobre-solapa::after{ opacity:1; }
 
-  /* sombra del hueco interior al abrir */
+  /* interior del sobre: fondo oscuro sólido que se ve mientras la solapa se
+     pliega (antes de revelar la foto), dando profundidad al hueco del sobre. */
   .sobre-interior{
     position:absolute; inset:0;
     z-index:2;
-    background:linear-gradient(180deg, rgba(0,0,0,.4) 0%, rgba(0,0,0,.12) 45%, transparent 65%);
+    background:#232a1a;
+    background-image:linear-gradient(180deg, #1a2011 0%, #2a3320 55%, #303a24 100%);
     clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     opacity:0;
-    transition:opacity .7s ease .5s;
+    transition:opacity .5s ease;
   }
   .sobre.abriendo .sobre-interior{ opacity:1; }
 
@@ -1670,27 +1678,26 @@
 
       if (typeof window.__reproducirMusica === "function") window.__reproducirMusica();
 
-      // 1) se abre la solapa (1.4 s) y detrás aparece la foto B/N en el triángulo
+      // 1) se abre la solapa (2 s, movimiento visible); el interior se oscurece
       sobre.classList.add("abriendo");
 
-      // 2) tras abrirse la solapa por completo y dejar ver la foto un momento,
-      //    la foto se expande desde el triángulo hasta llenar la pantalla
+      // 2) con la solapa ya abierta, la foto se expande desde el triángulo
       setTimeout(function(){
         if (sobreFoto) sobreFoto.classList.add("expandir");
         var tapa = document.getElementById("sobre-tapa-inferior");
         if (tapa) tapa.classList.add("ocultar");
-      }, 2400);
+      }, 3400);
 
       // 3) el marco del sobre se desvanece, quedando la foto B/N completa
       setTimeout(function(){
         overlay.classList.add("abierto");
         document.body.style.overflow = "";
-      }, 3700);
+      }, 4700);
 
       // 4) la foto se "pinta" de color de arriba hacia abajo (~5 s)
       setTimeout(function(){
         if (capaGris) capaGris.classList.add("disolver");
-      }, 4100);
+      }, 5100);
     }
 
     sobre.addEventListener("click", abrir);
