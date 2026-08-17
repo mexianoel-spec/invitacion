@@ -1069,78 +1069,96 @@
     overflow:hidden;
   }
 
-  /* cuerpo del sobre: se renderiza a alto completo (auto 100%), centrado.
-     Así su ancho = 100vh * 0.571, y la solapa se alinea al mismo tamaño. */
+  /* ---- Geometría del sobre ----
+     Todas las capas usan la misma imagen con background-size:cover y
+     background-position:center center, así se recortan idénticamente en
+     cualquier pantalla y quedan alineadas. La unión de las solapas está al
+     54.88% de la imagen; con cover en pantallas verticales eso equivale al
+     54.88% del alto visible. */
+
   .sobre-cuerpo{
-    position:absolute;
-    inset:0;
+    position:absolute; inset:0;
     background-image:var(--sobre-cuerpo, none);
-    background-size:auto 100%;
-    background-position:center top;
+    background-size:cover;
+    background-position:center center;
     background-color:#4a543a;
     z-index:1;
   }
-  /* tapa inferior: la parte del sobre por debajo de la unión, encima de la
-     foto, para que la foto solo se vea dentro del triángulo de la solapa. */
+
+  /* foto B/N dentro del triángulo de la solapa (punta en la unión) */
+  .sobre-foto{
+    position:absolute; inset:0;
+    z-index:2;
+    background-image:var(--foto-gris, none);
+    background-size:cover;
+    background-position:center 42%;
+    filter:grayscale(1) brightness(.9);
+    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    opacity:0;
+    transition:opacity .01s;
+  }
+  .sobre.abriendo .sobre-foto{ opacity:1; }
+  .sobre-foto.expandir{
+    clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    background-position:center 58%;
+    transition:clip-path 1.2s cubic-bezier(.4,0,.2,1),
+               -webkit-clip-path 1.2s cubic-bezier(.4,0,.2,1),
+               background-position 1.2s ease;
+  }
+
+  /* tapa inferior del sobre (misma imagen, cover): cubre la foto por debajo
+     de la unión, así la foto solo se asoma por el triángulo. */
   .sobre-tapa-inferior{
-    position:absolute;
-    inset:0;
+    position:absolute; inset:0;
     background-image:var(--sobre-cuerpo, none);
-    background-size:auto 100%;
-    background-position:center top;
-    z-index:5;
-    /* solo la mitad inferior (desde la unión hacia abajo) */
-    clip-path:polygon(0% 52.9%, 100% 52.9%, 100% 100%, 0% 100%);
-    -webkit-clip-path:polygon(0% 52.9%, 100% 52.9%, 100% 100%, 0% 100%);
+    background-size:cover;
+    background-position:center center;
+    z-index:3;
+    clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
+    -webkit-clip-path:polygon(0% 54.88%, 100% 54.88%, 100% 100%, 0% 100%);
     opacity:1;
     transition:opacity .9s ease;
   }
   .sobre-tapa-inferior.ocultar{ opacity:0; }
 
-  /* la solapa PNG se coloca EXACTAMENTE sobre la solapa dibujada en el cuerpo:
-     mismo ancho renderizado (57.1vh, igual que el cuerpo a alto completo),
-     centrada y pegada arriba. Su triángulo cae sobre el del cuerpo.
-     Al abrir gira sobre la bisagra superior. */
+  /* solapa superior (misma imagen, cover, recortada en el triángulo de arriba):
+     coincide exactamente con la solapa del sobre. Gira sobre la bisagra. */
   .sobre-solapa{
-    position:absolute;
-    top:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:57.1vh;                 /* mismo ancho que el cuerpo (diagonales encajan) */
-    height:93.3vh;                /* alto ajustado para que la punta caiga en la
-                                     unión real del sobre (52.9%), no más abajo */
-    max-width:none;
-    background-image:var(--sobre-solapa, none);
-    background-size:100% 100%;
-    background-repeat:no-repeat;
+    position:absolute; inset:0;
+    background-image:var(--sobre-cuerpo, none);
+    background-size:cover;
+    background-position:center center;
+    background-color:#3f4a31;
+    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
     transform-origin:top center;
-    transition:transform 1.6s cubic-bezier(.34,.05,.2,1);
+    transition:transform 1.7s cubic-bezier(.35,.15,.25,1);
     z-index:4;
-    backface-visibility:hidden;
     will-change:transform;
   }
-  .sobre.abriendo .sobre-solapa{
-    transform:translateX(-50%) rotateX(-172deg);
-    z-index:1;
-  }
-  /* sombra que aparece bajo la solapa al abrirse (hueco del sobre) */
-  .sobre-interior{
-    position:absolute;
-    top:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:57.1vh;
-    height:93.3vh;
-    z-index:2;
-    background:linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.2) 40%, transparent 60%);
-    -webkit-mask-image:var(--sobre-solapa, none);
-    mask-image:var(--sobre-solapa, none);
-    -webkit-mask-size:100% 100%;
-    mask-size:100% 100%;
-    -webkit-mask-repeat:no-repeat;
-    mask-repeat:no-repeat;
+  .sobre-solapa::after{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.4) 100%);
     opacity:0;
-    transition:opacity .7s ease .4s;
+    transition:opacity 1.7s ease;
+    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+  }
+  .sobre.abriendo .sobre-solapa{ transform:rotateX(-176deg); z-index:1; }
+  .sobre.abriendo .sobre-solapa::after{ opacity:1; }
+
+  /* sombra del hueco interior al abrir */
+  .sobre-interior{
+    position:absolute; inset:0;
+    z-index:2;
+    background:linear-gradient(180deg, rgba(0,0,0,.4) 0%, rgba(0,0,0,.12) 45%, transparent 65%);
+    clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 54.88%, 50% 54.88%);
+    opacity:0;
+    transition:opacity .7s ease .5s;
   }
   .sobre.abriendo .sobre-interior{ opacity:1; }
 
@@ -1206,40 +1224,6 @@
   }
   .sobre.abriendo .sobre-instruccion{ opacity:0; transition:opacity .4s; }
   @keyframes pulso{0%,100%{opacity:.5}50%{opacity:.95}}
-
-  /* foto en blanco y negro DENTRO del sobre: al abrir la solapa aparece
-     recortada con la forma del triángulo (como si la invitación estuviera
-     metida adentro del sobre). Después se expande a pantalla completa. */
-  .sobre-foto{
-    position:absolute;
-    top:0; left:0;
-    width:100%;
-    height:100%;
-    z-index:3;
-    background-image:var(--foto-gris, none);
-    background-size:cover;
-    background-position:center 40%;
-    filter:grayscale(1) brightness(.9);
-    /* triángulo idéntico a la abertura de la solapa: esquinas fuera de
-       pantalla (-11.8% y 111.8%) y punta en la unión (52.9%). Coincide con
-       las diagonales de la solapa en cualquier tamaño de pantalla.
-       La foto ya está visible detrás de la solapa cerrada, así que en cuanto
-       la solapa se levanta se ve la imagen de inmediato (no aparece el sobre
-       vacío). */
-    clip-path:polygon(-11.8% 0%, 111.8% 0%, 50% 52.9%, 50% 52.9%);
-    -webkit-clip-path:polygon(-11.8% 0%, 111.8% 0%, 50% 52.9%, 50% 52.9%);
-    opacity:1;
-  }
-  /* fase 2: el recorte triangular se abre hasta cubrir toda la pantalla */
-  .sobre-foto.expandir{
-    background-position:center 58%;
-    clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-    transition:clip-path 1.2s cubic-bezier(.4,0,.2,1),
-               -webkit-clip-path 1.2s cubic-bezier(.4,0,.2,1),
-               background-position 1.2s ease;
-  }
-  @media (max-width:640px){ .sobre-foto{ background-position:center 40%; } }
 
   /* capa gris de la foto que se disuelve para revelar el color */
   .capa-gris{
@@ -1659,7 +1643,7 @@
     }
     set("sobre-cuerpo", "--sobre-cuerpo", cfg.cuerpo);
     set("sobre-tapa-inferior", "--sobre-cuerpo", cfg.cuerpo);
-    set("sobre-solapa", "--sobre-solapa", cfg.solapa);
+    set("sobre-solapa", "--sobre-cuerpo", cfg.cuerpo);
     set("sello", "--sello", cfg.sello);
 
     document.body.style.overflow = "hidden";
