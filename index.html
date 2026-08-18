@@ -760,7 +760,7 @@
   @media (max-width:640px){
     header.portada.con-foto{
       justify-content:flex-start;
-      padding-top:4rem;
+      padding-top:6.6rem;
       padding-bottom:5rem;
       background-image:
         linear-gradient(180deg, rgba(35,42,26,.8) 0%, rgba(35,42,26,.45) 34%, rgba(35,42,26,.4) 60%, rgba(35,42,26,.88) 100%),
@@ -1020,7 +1020,9 @@
     border:1px solid var(--linea);
     box-shadow:0 8px 20px rgba(0,0,0,.28);
   }
-  .no-color .muestra.blanco{background:#F4F1E6}
+  .no-color .muestra.blanco{
+    background:conic-gradient(from 210deg, #F4F1E6, #FBF3EC, #EFEADD, #F6EFE4, #F4F1E6);
+  }
   .no-color .muestra.olivo{background:#556B2F}
   /* línea diagonal de "prohibido" */
   .no-color .muestra::after{
@@ -1508,11 +1510,11 @@
       <div class="no-colores revelar">
         <div class="no-color">
           <div class="muestra blanco"></div>
-          <span>Blanco<small>Reservado para la novia</small></span>
+          <span>Colores claros<small>Guardémoslos para la novia</small></span>
         </div>
         <div class="no-color">
           <div class="muestra olivo"></div>
-          <span>Verde olivo<small>Es el color de la boda</small></span>
+          <span>Verde olivo<small>Nuestro color; lo lucirán las damas</small></span>
         </div>
       </div>
 
@@ -1584,7 +1586,7 @@
             Ahí estaré<small>Cuenten conmigo</small>
           </button>
           <button type="button" class="opcion" id="btn-no" aria-pressed="false">
-            No podré<small>Los acompaño de lejos</small>
+            A distancia, con cariño<small>Esta vez no podré acompañarlos</small>
           </button>
         </div>
 
