@@ -1085,9 +1085,10 @@
     z-index:1;
   }
 
-  /* foto B/N dentro del triángulo de la solapa (punta en la unión).
-     Empieza oculta (recortada a una línea en la unión) y se va revelando
-     de abajo hacia arriba al MISMO ritmo que la solapa se levanta. */
+  /* foto B/N dentro del triángulo de la solapa. El triángulo coincide EXACTO
+     con la solapa del sobre-cuerpo: esquinas en -26.5% y 126.3% (fuera de
+     pantalla, igual que las diagonales de la solapa) y punta en la unión
+     (57.1%). Empieza oculta y se revela al ritmo de la solapa. */
   .sobre-foto{
     position:absolute; inset:0;
     z-index:3;
@@ -1095,17 +1096,14 @@
     background-size:cover;
     background-position:center 42%;
     filter:grayscale(1) brightness(.9);
-    /* recorte inicial: solo una franja en la punta (nada visible) */
-    clip-path:polygon(50% 56.7%, 50% 56.7%, 50% 56.7%);
-    -webkit-clip-path:polygon(50% 56.7%, 50% 56.7%, 50% 56.7%);
-    transition:clip-path 2.4s cubic-bezier(.5,.04,.4,1),
-               -webkit-clip-path 2.4s cubic-bezier(.5,.04,.4,1);
+    clip-path:polygon(50% 57.1%, 50% 57.1%, 50% 57.1%);
+    -webkit-clip-path:polygon(50% 57.1%, 50% 57.1%, 50% 57.1%);
+    transition:clip-path 3.1s cubic-bezier(.5,.04,.4,1),
+               -webkit-clip-path 3.1s cubic-bezier(.5,.04,.4,1);
   }
-  /* al abrir: la foto se revela hasta llenar el triángulo completo, en sync
-     con el plegado de la solapa (misma duración y easing). */
   .sobre.abriendo .sobre-foto{
-    clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%);
+    clip-path:polygon(-26.5% 0%, 126.3% 0%, 50% 57.1%);
+    -webkit-clip-path:polygon(-26.5% 0%, 126.3% 0%, 50% 57.1%);
   }
   .sobre-foto.expandir{
     clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
@@ -1141,7 +1139,7 @@
     background-position:center top;
     transform-origin:top center;
     transform:scaleY(1);
-    transition:transform 2.4s cubic-bezier(.5,.04,.4,1);
+    transition:transform 3.1s cubic-bezier(.5,.04,.4,1);
     z-index:5;
     will-change:transform;
   }
@@ -1152,7 +1150,7 @@
     position:absolute; inset:0;
     background:linear-gradient(180deg, rgba(20,26,14,.05) 0%, rgba(20,26,14,.45) 100%);
     opacity:0;
-    transition:opacity 2.4s ease;
+    transition:opacity 3.1s ease;
     -webkit-mask-image:var(--sobre-solapa, none);
     mask-image:var(--sobre-solapa, none);
     -webkit-mask-size:cover;
@@ -1683,7 +1681,7 @@
 
       if (typeof window.__reproducirMusica === "function") window.__reproducirMusica();
 
-      // 1) se abre la solapa (2 s, movimiento visible); el interior se oscurece
+      // 1) la solapa se pliega (3.1 s) y la foto se revela en sincronía
       sobre.classList.add("abriendo");
 
       // 2) con la solapa ya abierta, la foto se expande desde el triángulo
@@ -1691,18 +1689,18 @@
         if (sobreFoto) sobreFoto.classList.add("expandir");
         var tapa = document.getElementById("sobre-tapa-inferior");
         if (tapa) tapa.classList.add("ocultar");
-      }, 3400);
+      }, 3900);
 
       // 3) el marco del sobre se desvanece, quedando la foto B/N completa
       setTimeout(function(){
         overlay.classList.add("abierto");
         document.body.style.overflow = "";
-      }, 4700);
+      }, 5200);
 
       // 4) la foto se "pinta" de color de arriba hacia abajo (~5 s)
       setTimeout(function(){
         if (capaGris) capaGris.classList.add("disolver");
-      }, 5100);
+      }, 5600);
     }
 
     sobre.addEventListener("click", abrir);
