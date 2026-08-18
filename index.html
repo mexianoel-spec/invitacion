@@ -1096,14 +1096,14 @@
     background-size:cover;
     background-position:center 42%;
     filter:grayscale(1) brightness(.9);
-    clip-path:polygon(50% 57.1%, 50% 57.1%, 50% 57.1%);
-    -webkit-clip-path:polygon(50% 57.1%, 50% 57.1%, 50% 57.1%);
+    clip-path:polygon(50% 56.8%, 50% 56.8%, 50% 56.8%);
+    -webkit-clip-path:polygon(50% 56.8%, 50% 56.8%, 50% 56.8%);
     transition:clip-path 3.1s cubic-bezier(.5,.04,.4,1),
                -webkit-clip-path 3.1s cubic-bezier(.5,.04,.4,1);
   }
   .sobre.abriendo .sobre-foto{
-    clip-path:polygon(-26.5% 0%, 126.3% 0%, 50% 57.1%);
-    -webkit-clip-path:polygon(-26.5% 0%, 126.3% 0%, 50% 57.1%);
+    clip-path:polygon(-22% 0%, 122% 0%, 50% 56.8%);
+    -webkit-clip-path:polygon(-22% 0%, 122% 0%, 50% 56.8%);
   }
   .sobre-foto.expandir{
     clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
@@ -1263,8 +1263,8 @@
   .capa-gris.disolver{
     -webkit-mask-position:0 -100%;
     mask-position:0 -100%;
-    transition:-webkit-mask-position 5s cubic-bezier(.45,.02,.5,1),
-               mask-position 5s cubic-bezier(.45,.02,.5,1);
+    transition:-webkit-mask-position 3.5s cubic-bezier(.4,.03,.5,1),
+               mask-position 3.5s cubic-bezier(.4,.03,.5,1);
   }
   @media (max-width:640px){ .capa-gris{ background-position:center 60%; } }
 
@@ -1697,10 +1697,10 @@
         document.body.style.overflow = "";
       }, 5200);
 
-      // 4) la foto se "pinta" de color de arriba hacia abajo (~5 s)
+      // 4) la foto se "pinta" de color de arriba hacia abajo (~3.5 s)
       setTimeout(function(){
         if (capaGris) capaGris.classList.add("disolver");
-      }, 5600);
+      }, 5300);
     }
 
     sobre.addEventListener("click", abrir);
