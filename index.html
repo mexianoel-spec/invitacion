@@ -1085,7 +1085,9 @@
     z-index:1;
   }
 
-  /* foto B/N dentro del triángulo de la solapa (punta en la unión) */
+  /* foto B/N dentro del triángulo de la solapa (punta en la unión).
+     Empieza oculta (recortada a una línea en la unión) y se va revelando
+     de abajo hacia arriba al MISMO ritmo que la solapa se levanta. */
   .sobre-foto{
     position:absolute; inset:0;
     z-index:3;
@@ -1093,11 +1095,18 @@
     background-size:cover;
     background-position:center 42%;
     filter:grayscale(1) brightness(.9);
-    clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
-    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%, 50% 56.7%);
-    opacity:1;
+    /* recorte inicial: solo una franja en la punta (nada visible) */
+    clip-path:polygon(50% 56.7%, 50% 56.7%, 50% 56.7%);
+    -webkit-clip-path:polygon(50% 56.7%, 50% 56.7%, 50% 56.7%);
+    transition:clip-path 2.4s cubic-bezier(.5,.04,.4,1),
+               -webkit-clip-path 2.4s cubic-bezier(.5,.04,.4,1);
   }
-  .sobre.abriendo .sobre-foto{ opacity:1; }
+  /* al abrir: la foto se revela hasta llenar el triángulo completo, en sync
+     con el plegado de la solapa (misma duración y easing). */
+  .sobre.abriendo .sobre-foto{
+    clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%);
+    -webkit-clip-path:polygon(0% 0%, 100% 0%, 50% 56.7%);
+  }
   .sobre-foto.expandir{
     clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
     -webkit-clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
