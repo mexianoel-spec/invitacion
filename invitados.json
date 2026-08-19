@@ -4,5 +4,11 @@
     "adultos": 2,
     "ninos": 1,
     "grupo": "novio"
+  },
+  "fam-noelo": {
+    "nombre": "Familia Noelo",
+    "adultos": 1,
+    "ninos": 0,
+    "grupo": "novio"
   }
 }
