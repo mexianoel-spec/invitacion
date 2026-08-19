@@ -1352,8 +1352,8 @@
   .capa-gris.disolver{
     -webkit-mask-position:0 -100%;
     mask-position:0 -100%;
-    transition:-webkit-mask-position 3.5s cubic-bezier(.4,.03,.5,1),
-               mask-position 3.5s cubic-bezier(.4,.03,.5,1);
+    transition:-webkit-mask-position 2.5s cubic-bezier(.35,.03,.5,1),
+               mask-position 2.5s cubic-bezier(.35,.03,.5,1);
   }
   @media (max-width:640px){ .capa-gris{ background-position:center 60%; } }
 
@@ -1567,7 +1567,7 @@
     <div class="rejilla-detalles">
       <div class="revelar">
         <h4>Confirma antes del</h4>
-        <p>20 de octubre<small>Después de esa fecha cerramos la lista con el salón</small></p>
+        <p>15 de octubre<small>Después de esa fecha cerramos la lista con el salón</small></p>
       </div>
       <div class="revelar">
         <h4>Traslado</h4>
@@ -1719,7 +1719,7 @@
         <a class="btn" id="btn-whats-generico" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
       </div>
 
-      <p class="limite">Te pedimos confirmar antes del <strong>20 de octubre</strong>. Puedes cambiar tu respuesta cuando quieras.</p>
+      <p class="limite">Te pedimos confirmar antes del <strong>15 de octubre</strong>. Puedes cambiar tu respuesta cuando quieras.</p>
     </div>
   </div>
 </section>
@@ -1815,10 +1815,10 @@
         document.body.style.overflow = "";
       }, 5200);
 
-      // 4) la foto se "pinta" de color de arriba hacia abajo (~3.5 s)
+      // 4) la foto se "pinta" de color de arriba hacia abajo (~2.5 s)
       setTimeout(function(){
         if (capaGris) capaGris.classList.add("disolver");
-      }, 5300);
+      }, 5200);
     }
 
     sobre.addEventListener("click", abrir);
