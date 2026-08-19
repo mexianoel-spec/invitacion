@@ -208,10 +208,11 @@
     flex-wrap:nowrap;
   }
   .conteo div{
-    flex:1 1 0;
+    flex:1 1 96px;
     min-width:0;
     max-width:96px;
-    padding:clamp(.7rem,2.5vw,1rem) clamp(.2rem,1.2vw,.6rem) clamp(.6rem,2vw,.8rem);
+    box-sizing:border-box;
+    padding:clamp(.7rem,2.5vw,1rem) clamp(.15rem,.8vw,.5rem) clamp(.6rem,2vw,.8rem);
     border:1px solid var(--linea);
   }
   .conteo strong{
@@ -225,8 +226,8 @@
   .conteo small{
     display:block;
     margin-top:.5rem;
-    font-size:clamp(.46rem,1.7vw,.56rem);
-    letter-spacing:.14em;
+    font-size:clamp(.36rem,1.35vw,.56rem);
+    letter-spacing:.04em;
     text-transform:uppercase;
     color:var(--marfil-tenue);
     white-space:nowrap;
