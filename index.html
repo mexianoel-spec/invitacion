@@ -203,30 +203,33 @@
   .conteo{
     margin-top:3.2rem;
     display:flex;
-    gap:clamp(.6rem,2.4vw,1.6rem);
+    gap:clamp(.35rem,1.6vw,1.6rem);
     justify-content:center;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
   }
   .conteo div{
-    min-width:clamp(66px, 18vw, 96px);
-    padding:1rem .6rem .8rem;
+    flex:1 1 0;
+    min-width:0;
+    max-width:96px;
+    padding:clamp(.7rem,2.5vw,1rem) clamp(.2rem,1.2vw,.6rem) clamp(.6rem,2vw,.8rem);
     border:1px solid var(--linea);
   }
   .conteo strong{
     display:block;
     font-family:var(--display);
     font-weight:400;
-    font-size:clamp(1.9rem,6vw,2.7rem);
+    font-size:clamp(1.5rem,7vw,2.7rem);
     line-height:1;
     font-variant-numeric:tabular-nums;
   }
   .conteo small{
     display:block;
     margin-top:.5rem;
-    font-size:.56rem;
-    letter-spacing:.24em;
+    font-size:clamp(.46rem,1.7vw,.56rem);
+    letter-spacing:.14em;
     text-transform:uppercase;
     color:var(--marfil-tenue);
+    white-space:nowrap;
   }
   .conteo-final{
     margin-top:3.2rem;
@@ -418,6 +421,28 @@
     color:var(--laton);
   }
   .como-llegar + .botones{margin-top:0}
+  .cal-wrap{
+    text-align:center;
+    margin:0 auto clamp(2.4rem,5vw,3.4rem);
+  }
+  .btn-calendario{
+    display:inline-flex;
+    align-items:center;
+    gap:.6rem;
+    padding:.85rem 1.6rem;
+    border:1px solid var(--laton);
+    background:transparent;
+    color:var(--laton);
+    font-family:var(--cuerpo);
+    font-size:.63rem;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .32s ease, color .32s ease;
+  }
+  .btn-calendario:hover{ background:var(--laton); color:var(--olivo-hondo); }
+  .btn-calendario svg{ width:15px; height:15px; flex-shrink:0; }
+
   .btn.mapa-btn{
     display:inline-flex;
     align-items:center;
@@ -1187,8 +1212,8 @@
     filter:grayscale(1) brightness(.9);
     clip-path:polygon(50% 56.9%, 50% 56.9%, 50% 56.9%);
     -webkit-clip-path:polygon(50% 56.9%, 50% 56.9%, 50% 56.9%);
-    transition:clip-path 3.1s cubic-bezier(.5,.04,.4,1),
-               -webkit-clip-path 3.1s cubic-bezier(.5,.04,.4,1);
+    transition:clip-path 2.2s cubic-bezier(.5,.04,.4,1),
+               -webkit-clip-path 2.2s cubic-bezier(.5,.04,.4,1);
   }
   .sobre.abriendo .sobre-foto{
     clip-path:polygon(-14% 0%, 114% 0%, 50% 56.9%);
@@ -1228,7 +1253,7 @@
     background-position:center top;
     transform-origin:top center;
     transform:scaleY(1);
-    transition:transform 3.1s cubic-bezier(.5,.04,.4,1);
+    transition:transform 2.2s cubic-bezier(.5,.04,.4,1);
     z-index:5;
     will-change:transform;
   }
@@ -1481,6 +1506,13 @@
     <div class="titulo-seccion revelar">
       <p class="eyebrow">Domingo 15 de noviembre</p>
       <h2>El día</h2>
+    </div>
+
+    <div class="cal-wrap revelar">
+      <button type="button" class="btn-calendario" id="btn-calendario">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2M17 2v2M3 8h18M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Agregar a mi calendario
+      </button>
     </div>
 
     <div class="eventos">
@@ -1799,26 +1831,26 @@
 
       if (typeof window.__reproducirMusica === "function") window.__reproducirMusica();
 
-      // 1) la solapa se pliega (3.1 s) y la foto se revela en sincronía
+      // 1) la solapa se pliega (2.2 s) y la foto se revela en sincronía
       sobre.classList.add("abriendo");
 
-      // 2) con la solapa ya abierta, la foto se expande desde el triángulo
+      // 2) apenas termina de abrirse la solapa, la foto se expande (sin pausa)
       setTimeout(function(){
         if (sobreFoto) sobreFoto.classList.add("expandir");
         var tapa = document.getElementById("sobre-tapa-inferior");
         if (tapa) tapa.classList.add("ocultar");
-      }, 3900);
+      }, 2250);
 
       // 3) el marco del sobre se desvanece, quedando la foto B/N completa
       setTimeout(function(){
         overlay.classList.add("abierto");
         document.body.style.overflow = "";
-      }, 5200);
+      }, 3450);
 
       // 4) la foto se "pinta" de color de arriba hacia abajo (~2.5 s)
       setTimeout(function(){
         if (capaGris) capaGris.classList.add("disolver");
-      }, 5200);
+      }, 3550);
     }
 
     sobre.addEventListener("click", abrir);
@@ -1904,6 +1936,73 @@
   }
   tic();
   var reloj = setInterval(tic, 1000);
+
+  /* ---------- Agregar a mi calendario (.ics universal) ---------- */
+  (function(){
+    var btnCal = document.getElementById("btn-calendario");
+    if (!btnCal) return;
+
+    function pad(n){ return (n < 10 ? "0" : "") + n; }
+    // fecha/hora en formato ICS (hora local con TZID de la Ciudad de México)
+    // Boda: domingo 15 de noviembre de 2026. Ceremonia 4:30pm, fin ~11:00pm.
+    function ics(){
+      var inicio = "20261115T163000"; // 4:30 pm
+      var fin    = "20261115T230000"; // 11:00 pm
+      var ahora  = new Date();
+      var stamp  = ahora.getUTCFullYear() +
+                   pad(ahora.getUTCMonth()+1) + pad(ahora.getUTCDate()) + "T" +
+                   pad(ahora.getUTCHours()) + pad(ahora.getUTCMinutes()) + pad(ahora.getUTCSeconds()) + "Z";
+      var uid = "boda-monse-noel-" + Date.now() + "@invitacion";
+      var desc = "Ceremonia religiosa 4:30 pm en el Templo Maria Reina del Palomar.\\n" +
+                 "Civil y recepcion 6:30 pm en Hacienda Provenza.\\n\\n" +
+                 "Codigo de vestimenta: formal. Evita colores claros y verde olivo.";
+      var lineas = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Boda Monserrat y Noel//Invitacion//ES",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        "BEGIN:VTIMEZONE",
+        "TZID:America/Mexico_City",
+        "BEGIN:STANDARD",
+        "DTSTART:19700101T000000",
+        "TZOFFSETFROM:-0600",
+        "TZOFFSETTO:-0600",
+        "TZNAME:CST",
+        "END:STANDARD",
+        "END:VTIMEZONE",
+        "BEGIN:VEVENT",
+        "UID:" + uid,
+        "DTSTAMP:" + stamp,
+        "DTSTART;TZID=America/Mexico_City:" + inicio,
+        "DTEND;TZID=America/Mexico_City:" + fin,
+        "SUMMARY:Boda de Monserrat & Noel",
+        "DESCRIPTION:" + desc,
+        "LOCATION:Templo Maria Reina del Palomar, Tlajomulco de Zuniga, Jalisco",
+        "STATUS:CONFIRMED",
+        "BEGIN:VALARM",
+        "TRIGGER:-P1D",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:Manana es la boda de Monserrat & Noel",
+        "END:VALARM",
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ];
+      return lineas.join("\r\n");
+    }
+
+    btnCal.addEventListener("click", function(){
+      var blob = new Blob([ics()], { type: "text/calendar;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "Boda-Monserrat-y-Noel.ics";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    });
+  })();
 
   /* ---------- Invitado personalizado y confirmación ---------- */
 
