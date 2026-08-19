@@ -675,6 +675,92 @@
   }
   .enviar:disabled{opacity:.32;cursor:not-allowed}
 
+  /* selector de cuántas personas asisten */
+  .selector-personas{
+    margin-top:1.6rem;
+    display:none;
+  }
+  .selector-personas.visible{ display:block; }
+  .selector-grupo{
+    margin-bottom:1.4rem;
+  }
+  .selector-grupo:last-child{ margin-bottom:0; }
+  .selector-grupo > .etiqueta{
+    display:block;
+    font-size:.62rem;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--laton);
+    margin-bottom:.85rem;
+  }
+  .conteo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1.4rem;
+  }
+  .conteo button{
+    width:2.9rem;
+    height:2.9rem;
+    border-radius:50%;
+    border:1px solid var(--linea);
+    background:transparent;
+    color:var(--marfil);
+    font-size:1.5rem;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .25s ease, background .25s ease, opacity .25s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .conteo button:hover{ border-color:var(--laton); }
+  .conteo button:disabled{ opacity:.25; cursor:not-allowed; }
+  .conteo .valor{
+    font-family:var(--display);
+    font-size:2.4rem;
+    color:var(--marfil);
+    min-width:2.4rem;
+    text-align:center;
+    line-height:1;
+  }
+  .conteo .valor small{
+    display:block;
+    font-family:var(--cuerpo);
+    font-size:.56rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--marfil-tenue);
+    margin-top:.4rem;
+  }
+
+  /* mensaje especial para los niños */
+  .mensaje-ninos{
+    margin-top:1.8rem;
+    padding:1.4rem 1.5rem;
+    border:1px solid var(--linea);
+    border-radius:2px;
+    background:rgba(183,155,98,.06);
+    text-align:left;
+    display:none;
+  }
+  .mensaje-ninos.visible{ display:block; }
+  .mensaje-ninos .titulo-ninos{
+    font-family:var(--display);
+    font-style:italic;
+    font-size:1.2rem;
+    color:var(--laton);
+    margin-bottom:.7rem;
+  }
+  .mensaje-ninos p{
+    font-size:.9rem;
+    line-height:1.65;
+    color:var(--marfil-tenue);
+    margin:0 0 .7rem;
+  }
+  .mensaje-ninos p:last-child{ margin-bottom:0; }
+
   .aviso{
     margin-top:1.3rem;
     font-size:.92rem;
@@ -1590,6 +1676,35 @@
           </button>
         </div>
 
+        <!-- selector de cuántas personas asisten (aparece al elegir "Ahí estaré") -->
+        <div class="selector-personas" id="selector-personas">
+          <!-- grupo adultos (o total, si no hay niños) -->
+          <div class="selector-grupo" id="grupo-adultos">
+            <span class="etiqueta" id="etiqueta-adultos">¿Cuántos asisten?</span>
+            <div class="conteo">
+              <button type="button" id="ad-menos" aria-label="Quitar">−</button>
+              <span class="valor"><span id="ad-num">1</span><small id="ad-cap">adultos</small></span>
+              <button type="button" id="ad-mas" aria-label="Agregar">+</button>
+            </div>
+          </div>
+          <!-- grupo niños (solo si la familia tiene niños asignados) -->
+          <div class="selector-grupo" id="grupo-ninos" hidden>
+            <span class="etiqueta">¿Cuántos niños?</span>
+            <div class="conteo">
+              <button type="button" id="ni-menos" aria-label="Quitar">−</button>
+              <span class="valor"><span id="ni-num">0</span><small>niños</small></span>
+              <button type="button" id="ni-mas" aria-label="Agregar">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- mensaje especial para los niños (si la familia tiene niños) -->
+        <div class="mensaje-ninos" id="mensaje-ninos">
+          <p class="titulo-ninos">Para nuestros pequeños</p>
+          <p>Para que nuestros pequeños también disfruten de este día tan especial, hemos preparado un área exclusiva para ellos, donde contarán con atención y un menú especialmente pensado para ellos.</p>
+          <p>Por este motivo, los niños menores de 10 años no tendrán lugar asignado dentro del salón principal.</p>
+        </div>
+
         <button type="button" class="enviar" id="btn-enviar" disabled>Enviar respuesta</button>
         <p class="aviso" id="rsvp-aviso" role="status" aria-live="polite"></p>
 
@@ -1793,10 +1908,28 @@
   /* ---------- Invitado personalizado y confirmación ---------- */
 
   var DEMO = {
-    "fam-mexia":     { nombre: "Familia Mexia Figueroa", pases: 4, telefono: "", grupo: "novio" },
-    "fam-hernandez": { nombre: "Familia Hernández",      pases: 2, telefono: "", grupo: "novia" },
-    "omar-lepe":     { nombre: "Omar Lepe",              pases: 1, telefono: "", grupo: "novio" }
+    "fam-mexia":     { nombre: "Familia Mexia Figueroa", adultos: 3, ninos: 1, telefono: "", grupo: "novio" },
+    "fam-hernandez": { nombre: "Familia Hernández",      adultos: 2, ninos: 0, telefono: "", grupo: "novia" },
+    "omar-lepe":     { nombre: "Omar Lepe",              adultos: 1, ninos: 0, telefono: "", grupo: "novio" }
   };
+
+  // normaliza un invitado que pueda venir con el formato viejo (pases) o nuevo (adultos/ninos)
+  function normaliza(d){
+    if (!d) return d;
+    var adultos = (d.adultos !== undefined && d.adultos !== "") ? Number(d.adultos) : null;
+    var ninos   = (d.ninos   !== undefined && d.ninos   !== "") ? Number(d.ninos)   : null;
+    if (adultos === null && ninos === null) {
+      // formato viejo: solo pases → todos adultos
+      adultos = Number(d.pases) || 1;
+      ninos = 0;
+    }
+    if (adultos === null) adultos = 0;
+    if (ninos === null) ninos = 0;
+    d.adultos = adultos;
+    d.ninos = ninos;
+    d.pases = adultos + ninos;
+    return d;
+  }
 
   var id = (new URLSearchParams(window.location.search).get("id") || "").toLowerCase();
   var invitado = null;
@@ -1810,11 +1943,48 @@
   var btnEnviar  = document.getElementById("btn-enviar");
   var btnWhats   = document.getElementById("btn-whats");
 
+  // selector de personas
+  var selPersonas = document.getElementById("selector-personas");
+  var grupoNinos  = document.getElementById("grupo-ninos");
+  var etAdultos   = document.getElementById("etiqueta-adultos");
+  var adCap       = document.getElementById("ad-cap");
+  var adNum       = document.getElementById("ad-num");
+  var niNum       = document.getElementById("ni-num");
+  var adMas = document.getElementById("ad-mas"), adMenos = document.getElementById("ad-menos");
+  var niMas = document.getElementById("ni-mas"), niMenos = document.getElementById("ni-menos");
+  var msgNinos    = document.getElementById("mensaje-ninos");
+
+  var confAdultos = 1;   // adultos que confirman asistencia
+  var confNinos   = 0;   // niños que confirman asistencia
+
+  function tieneNinos(){ return invitado && Number(invitado.ninos) > 0; }
+
+  // sincroniza los números y habilita/deshabilita los botones ± según topes
+  function pintarConteo(){
+    if (!invitado) return;
+    adNum.textContent = confAdultos;
+    niNum.textContent = confNinos;
+    // adultos: mínimo 1, máximo los adultos reservados
+    adMenos.disabled = confAdultos <= 1;
+    adMas.disabled   = confAdultos >= Number(invitado.adultos);
+    // niños: mínimo 0, máximo los niños reservados
+    niMenos.disabled = confNinos <= 0;
+    niMas.disabled   = confNinos >= Number(invitado.ninos);
+  }
+
   function mensajeWhats(nombre, respuesta){
     if (respuesta === "no") {
       return "¡Hola, Monserrat y Noel! Soy " + nombre + ". Con mucha pena no podré acompañarlos el 15 de noviembre, pero les mando un abrazo enorme y todos mis deseos de que sea un día precioso. ¡Muchas felicidades!";
     }
-    return "¡Hola, Monserrat y Noel! Soy " + nombre + ". Con mucho gusto confirmo mi asistencia a su boda el domingo 15 de noviembre. Gracias por tomarnos en cuenta en un día tan importante. ¡Ahí nos vemos!";
+    var detalle;
+    if (tieneNinos()) {
+      var partesA = confAdultos === 1 ? "1 adulto" : confAdultos + " adultos";
+      var partesN = confNinos === 0 ? "sin niños" : (confNinos === 1 ? "1 niño" : confNinos + " niños");
+      detalle = " Confirmo asistencia de " + partesA + " y " + partesN + ".";
+    } else {
+      detalle = confAdultos === 1 ? " Confirmo mi asistencia." : " Confirmo asistencia de " + confAdultos + " personas.";
+    }
+    return "¡Hola, Monserrat y Noel! Soy " + nombre + "." + detalle + " Gracias por tomarnos en cuenta en un día tan importante. ¡Ahí nos vemos!";
   }
 
   function actualizarWhats(){
@@ -1828,11 +1998,44 @@
     btnSi.setAttribute("aria-pressed", valor === "si");
     btnNo.setAttribute("aria-pressed", valor === "no");
     btnEnviar.disabled = false;
+
+    if (valor === "si") {
+      // mostrar selector; si tiene niños, también su mensaje
+      selPersonas.classList.add("visible");
+      if (tieneNinos()) {
+        grupoNinos.hidden = false;
+        etAdultos.textContent = "¿Cuántos adultos?";
+        adCap.textContent = "adultos";
+        msgNinos.classList.add("visible");
+      } else {
+        grupoNinos.hidden = true;
+        etAdultos.textContent = "¿Cuántos asisten?";
+        adCap.textContent = Number(invitado.adultos) === 1 ? "persona" : "personas";
+        msgNinos.classList.remove("visible");
+      }
+      pintarConteo();
+    } else {
+      selPersonas.classList.remove("visible");
+      msgNinos.classList.remove("visible");
+    }
     actualizarWhats();
   }
 
   btnSi.addEventListener("click", function(){ elegir("si"); });
   btnNo.addEventListener("click", function(){ elegir("no"); });
+
+  adMas.addEventListener("click", function(){
+    if (confAdultos < Number(invitado.adultos)) { confAdultos++; pintarConteo(); actualizarWhats(); }
+  });
+  adMenos.addEventListener("click", function(){
+    if (confAdultos > 1) { confAdultos--; pintarConteo(); actualizarWhats(); }
+  });
+  niMas.addEventListener("click", function(){
+    if (confNinos < Number(invitado.ninos)) { confNinos++; pintarConteo(); actualizarWhats(); }
+  });
+  niMenos.addEventListener("click", function(){
+    if (confNinos > 0) { confNinos--; pintarConteo(); actualizarWhats(); }
+  });
 
   btnEnviar.addEventListener("click", function(){
     if (!eleccion || !invitado) return;
@@ -1841,12 +2044,21 @@
     elAviso.className = "aviso";
     elAviso.textContent = "Enviando…";
 
+    // adultos/niños confirmados (si no asiste, 0)
+    var adultosConf = eleccion === "si" ? confAdultos : 0;
+    var ninosConf   = eleccion === "si" ? confNinos   : 0;
+
     fetch(CONFIG.URL_SCRIPT, {
       method: "POST",
       body: JSON.stringify({
         id: id,
         nombre: invitado.nombre,
         pases: invitado.pases,
+        adultos: invitado.adultos,
+        ninos: invitado.ninos,
+        adultos_confirma: adultosConf,
+        ninos_confirma: ninosConf,
+        total_confirma: adultosConf + ninosConf,
         grupo: invitado.grupo || "",
         telefono: invitado.telefono || "",
         respuesta: eleccion
@@ -1870,13 +2082,27 @@
   });
 
   function pintarInvitado(datos){
-    invitado = datos;
+    invitado = normaliza(datos);
+
+    // inicia el conteo confirmado con todo el cupo (adultos y niños reservados)
+    confAdultos = Number(invitado.adultos) || 1;
+    confNinos   = Number(invitado.ninos)   || 0;
+
+    // texto del cupo reservado, con desglose si hay niños
+    var textoCupo;
+    if (Number(invitado.ninos) > 0) {
+      var ta = invitado.adultos === 1 ? "1 adulto" : invitado.adultos + " adultos";
+      var tn = invitado.ninos === 1 ? "1 niño" : invitado.ninos + " niños";
+      textoCupo = ta + " y " + tn;
+    } else {
+      textoCupo = Number(invitado.pases) === 1 ? "1 lugar reservado" : invitado.pases + " lugares reservados";
+    }
 
     document.getElementById("para").textContent = datos.nombre;
     var pases = document.getElementById("pases");
-    pases.textContent = Number(datos.pases) === 1
+    pases.textContent = Number(invitado.pases) === 1
       ? "Reservamos 1 lugar para ti"
-      : "Reservamos " + datos.pases + " lugares para ustedes";
+      : "Reservamos " + invitado.pases + " lugares para ustedes";
     pases.hidden = false;
 
     // dedicatoria del sobre
@@ -1884,12 +2110,13 @@
     var sobrePas = document.getElementById("sobre-pases");
     if (sobreInv) sobreInv.textContent = datos.nombre;
     if (sobrePas) {
-      sobrePas.textContent = Number(datos.pases) === 1 ? "1 lugar reservado" : datos.pases + " lugares reservados";
+      sobrePas.textContent = Number(invitado.pases) === 1 ? "1 lugar reservado" : invitado.pases + " lugares reservados";
       sobrePas.hidden = false;
     }
 
     elNombre.textContent = datos.nombre;
-    elLugares.textContent = Number(datos.pases) === 1 ? "1 lugar reservado" : datos.pases + " lugares reservados";
+    elLugares.textContent = textoCupo;
+    pintarConteo();
     document.getElementById("rsvp-invitado").hidden = false;
     document.getElementById("rsvp-generico").hidden = true;
     actualizarWhats();
@@ -1900,7 +2127,15 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         if (d.ok && d.respuesta) {
+          // restaurar el conteo confirmado previamente, si existe
+          if (d.adultos_confirma !== undefined && d.adultos_confirma !== "" && d.adultos_confirma !== null) {
+            confAdultos = Math.max(1, Number(d.adultos_confirma) || 1);
+          }
+          if (d.ninos_confirma !== undefined && d.ninos_confirma !== "" && d.ninos_confirma !== null) {
+            confNinos = Number(d.ninos_confirma) || 0;
+          }
           elegir(d.respuesta);
+          pintarConteo();
           elAviso.className = "aviso";
           elAviso.textContent = d.respuesta === "si"
             ? "Ya confirmaste que sí asistes. Puedes cambiarlo si algo se atraviesa."

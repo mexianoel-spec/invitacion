@@ -126,6 +126,8 @@
         <div class="metrica no"><strong id="m-no">0</strong><small>No asisten</small></div>
         <div class="metrica"><strong id="m-pendientes">0</strong><small>Sin responder</small></div>
         <div class="metrica"><strong id="m-pases">0</strong><small>Pases confirmados</small></div>
+        <div class="metrica"><strong id="m-adultos">0</strong><small>Adultos confirmados</small></div>
+        <div class="metrica"><strong id="m-ninos">0</strong><small>Niños confirmados</small></div>
       </div>
 
       <div class="filtros">
@@ -146,7 +148,7 @@
       <div class="tabla-marco">
         <table>
           <thead>
-            <tr><th>Invitado</th><th>Id</th><th>Pases</th><th>Lado</th><th>Respuesta</th><th>Actualizado</th><th></th></tr>
+            <tr><th>Invitado</th><th>Id</th><th>Reservados</th><th>Confirmados</th><th>Lado</th><th>Respuesta</th><th>Actualizado</th><th></th></tr>
           </thead>
           <tbody id="cuerpo-confirmaciones"></tbody>
         </table>
@@ -170,7 +172,7 @@
       <div class="tabla-marco">
         <table>
           <thead>
-            <tr><th>Invitado</th><th>Id</th><th>Pases</th><th>Lado</th><th>Link</th><th></th></tr>
+            <tr><th>Invitado</th><th>Id</th><th>Reservados</th><th>Lado</th><th>Link</th><th></th></tr>
           </thead>
           <tbody id="cuerpo-invitados"></tbody>
         </table>
@@ -268,10 +270,18 @@
     FILAS = ids.map(function(id){
       var base = LISTA[id] || {};
       var reg  = porId[id] || {};
+      var adultos = Number(base.adultos !== undefined ? base.adultos : (reg.adultos || 0)) || 0;
+      var ninos   = Number(base.ninos   !== undefined ? base.ninos   : (reg.ninos   || 0)) || 0;
+      var pases   = (adultos + ninos) || Number(base.pases || reg.pases || 0);
       return {
         id: id,
         nombre: base.nombre || reg.nombre || id,
-        pases: Number(base.pases || reg.pases || 0),
+        adultos: adultos,
+        ninos: ninos,
+        pases: pases,
+        adultos_confirma: (reg.adultos_confirma === undefined || reg.adultos_confirma === "") ? null : Number(reg.adultos_confirma),
+        ninos_confirma:   (reg.ninos_confirma   === undefined || reg.ninos_confirma   === "") ? null : Number(reg.ninos_confirma),
+        total_confirma:   (reg.total_confirma   === undefined || reg.total_confirma   === "") ? null : Number(reg.total_confirma),
         grupo: base.grupo || reg.grupo || "",
         telefono: base.telefono || reg.telefono || "",
         respuesta: reg.respuesta || "pendiente",
@@ -291,7 +301,13 @@
     $("#m-si").textContent = si.length;
     $("#m-no").textContent = no.length;
     $("#m-pendientes").textContent = pd.length;
-    $("#m-pases").textContent = si.reduce(function(a,f){ return a + f.pases; }, 0);
+    // pases/adultos/niños confirmados: usa el conteo confirmado si existe, si no el reservado
+    function confTotal(f){ return f.total_confirma != null ? f.total_confirma : f.pases; }
+    function confAd(f){ return f.adultos_confirma != null ? f.adultos_confirma : f.adultos; }
+    function confNi(f){ return f.ninos_confirma != null ? f.ninos_confirma : f.ninos; }
+    $("#m-pases").textContent   = si.reduce(function(a,f){ return a + confTotal(f); }, 0);
+    $("#m-adultos").textContent = si.reduce(function(a,f){ return a + confAd(f); }, 0);
+    $("#m-ninos").textContent   = si.reduce(function(a,f){ return a + confNi(f); }, 0);
   }
 
   function filtradas(){
@@ -320,10 +336,20 @@
 
     datos.forEach(function(f){
       var tr = document.createElement("tr");
+      // reservados: adultos + niños
+      var reservados = f.ninos > 0 ? (f.adultos + "A · " + f.ninos + "N") : (f.pases + "");
+      // confirmados: solo si respondió que sí
+      var confirmados = "—";
+      if (f.respuesta === "si") {
+        var ca = f.adultos_confirma != null ? f.adultos_confirma : f.adultos;
+        var cn = f.ninos_confirma   != null ? f.ninos_confirma   : f.ninos;
+        confirmados = f.ninos > 0 ? (ca + "A · " + cn + "N") : ((ca) + "");
+      }
       tr.innerHTML =
         "<td>" + escapar(f.nombre) + "</td>" +
         "<td class='link-celda'>" + escapar(f.id) + "</td>" +
-        "<td>" + f.pases + "</td>" +
+        "<td>" + reservados + "</td>" +
+        "<td>" + confirmados + "</td>" +
         "<td>" + escapar(f.grupo) + "</td>" +
         "<td>" + etiqueta(f.respuesta) + "</td>" +
         "<td class='link-celda'>" + escapar(f.actualizado) + "</td>" +
@@ -339,8 +365,13 @@
   /* ---------- Exportar ---------- */
   function tablaExport(){
     return filtradas().map(function(f){
+      var ca = f.respuesta === "si" ? (f.adultos_confirma != null ? f.adultos_confirma : f.adultos) : 0;
+      var cn = f.respuesta === "si" ? (f.ninos_confirma   != null ? f.ninos_confirma   : f.ninos)   : 0;
       return {
-        Invitado: f.nombre, Id: f.id, Pases: f.pases, Lado: f.grupo,
+        Invitado: f.nombre, Id: f.id,
+        Adultos_reservados: f.adultos, Ninos_reservados: f.ninos, Total_reservado: f.pases,
+        Adultos_confirmados: ca, Ninos_confirmados: cn, Total_confirmado: ca + cn,
+        Lado: f.grupo,
         Respuesta: f.respuesta === "si" ? "Asiste" : f.respuesta === "no" ? "No asiste" : "Sin responder",
         Telefono: f.telefono, Actualizado: f.actualizado
       };
@@ -382,9 +413,20 @@
           var id = String(r.id || "").trim().toLowerCase();
           if (!id) return;
           if (LISTA[id]) repetidos.push(id);
+          // adultos y niños. Compatibilidad: si solo hay "pases", todos adultos.
+          var adultos, ninos;
+          if (r.adultos !== undefined && r.adultos !== "") {
+            adultos = Number(r.adultos) || 0;
+            ninos   = Number(r.ninos) || 0;
+          } else {
+            adultos = Number(r.pases) || 1;
+            ninos   = 0;
+          }
           LISTA[id] = {
             nombre: String(r.nombre_a_mostrar || "").trim(),
-            pases: Number(r.pases) || 1,
+            adultos: adultos,
+            ninos: ninos,
+            pases: adultos + ninos,
             telefono: String(r.telefono || "").replace(/\D/g, ""),
             grupo: String(r.grupo || "").trim().toLowerCase()
           };
@@ -421,7 +463,7 @@
       tr.innerHTML =
         "<td>" + escapar(g.nombre) + "</td>" +
         "<td class='link-celda'>" + escapar(id) + "</td>" +
-        "<td>" + g.pases + "</td>" +
+        "<td>" + (g.ninos > 0 ? (g.adultos + "A · " + g.ninos + "N") : g.pases) + "</td>" +
         "<td>" + escapar(g.grupo) + "</td>" +
         "<td class='link-celda'>" + escapar(link) + "</td>" +
         "<td style='white-space:nowrap'>" +
@@ -450,14 +492,20 @@
        Los botones de WhatsApp de arriba usan el Excel que cargaste en esta sesión. */
     var publico = {};
     Object.keys(LISTA).forEach(function(id){
-      publico[id] = { nombre: LISTA[id].nombre, pases: LISTA[id].pases, grupo: LISTA[id].grupo };
+      publico[id] = {
+        nombre: LISTA[id].nombre,
+        adultos: LISTA[id].adultos,
+        ninos: LISTA[id].ninos,
+        grupo: LISTA[id].grupo
+      };
     });
     descargar("invitados.json", JSON.stringify(publico, null, 2), "application/json");
   });
 
   $("#btn-links").addEventListener("click", function(){
     var datos = Object.keys(LISTA).map(function(id){
-      return { Invitado: LISTA[id].nombre, Id: id, Pases: LISTA[id].pases,
+      return { Invitado: LISTA[id].nombre, Id: id,
+               Adultos: LISTA[id].adultos, Ninos: LISTA[id].ninos, Total: LISTA[id].pases,
                Lado: LISTA[id].grupo, Telefono: LISTA[id].telefono, Link: linkDe(id) };
     });
     var libro = XLSX.utils.book_new();
