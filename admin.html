@@ -51,6 +51,13 @@
   .btn.solido:hover{opacity:.85}
   .btn:disabled{opacity:.35;cursor:not-allowed}
   .btn.mini{padding:.34rem .6rem;font-size:.55rem;letter-spacing:.12em}
+  .lado-botones{display:flex;gap:.5rem;flex-wrap:wrap}
+  .lado-btn{padding:.55rem 1rem}
+  .lado-btn.activo{background:var(--laton);color:var(--olivo-hondo)}
+  .estado-badge{display:inline-block;padding:.24rem .6rem;border-radius:999px;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
+  .estado-badge.pendiente{background:rgba(183,155,98,.16);color:var(--laton)}
+  .estado-badge.enviado{background:rgba(120,150,90,.2);color:var(--si)}
+  tr.fila-enviado{opacity:.6}
 
   .acciones{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1.6rem}
 
@@ -108,6 +115,7 @@
 
     <div class="pestanas" role="tablist">
       <button role="tab" aria-selected="true"  data-vista="confirmaciones">Confirmaciones</button>
+      <button role="tab" aria-selected="false" data-vista="envios">Enviar invitaciones</button>
       <button role="tab" aria-selected="false" data-vista="invitados">Lista e invitaciones</button>
     </div>
 
@@ -154,6 +162,51 @@
         </table>
         <div class="vacio" id="vacio-confirmaciones">Sin datos todavía. Presiona “Actualizar datos”.</div>
       </div>
+    </section>
+
+    <!-- ── ENVÍOS ── -->
+    <section id="vista-envios" hidden>
+      <div class="zona">
+        <p>Sube tu <strong>lista-invitados.xlsx</strong> para enviar las invitaciones por WhatsApp. Cada botón abre WhatsApp con el mensaje y el link listos: solo das <strong>enviar</strong>. Al abrirlo, se marca como enviado y se guarda para que tú y la novia no repitan.</p>
+        <input type="file" id="archivo-envios" accept=".xlsx,.xls" style="max-width:340px;margin-inline:auto">
+      </div>
+
+      <div class="metricas">
+        <div class="metrica"><strong id="e-total">0</strong><small>En este lado</small></div>
+        <div class="metrica si"><strong id="e-enviados">0</strong><small>Enviados</small></div>
+        <div class="metrica"><strong id="e-faltan">0</strong><small>Faltan</small></div>
+      </div>
+
+      <div class="filtros">
+        <div class="lado-botones" role="group" aria-label="Filtrar por lado">
+          <button class="btn lado-btn activo" data-lado="">Todos</button>
+          <button class="btn lado-btn" data-lado="novio">Lado novio</button>
+          <button class="btn lado-btn" data-lado="novia">Lado novia</button>
+        </div>
+        <select id="filtro-envio">
+          <option value="">Todos</option>
+          <option value="pendiente">Solo pendientes</option>
+          <option value="enviado">Solo enviados</option>
+        </select>
+      </div>
+
+      <div class="acciones">
+        <button class="btn solido" id="btn-refrescar-envios">Actualizar estado</button>
+        <button class="btn" id="btn-abrir-tanda">Abrir siguiente tanda (20)</button>
+        <span class="nota" id="aviso-envios"></span>
+      </div>
+
+      <div class="tabla-marco">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Invitado</th><th>Lado</th><th>Estado</th><th>Enviar</th><th>Marcar</th></tr>
+          </thead>
+          <tbody id="cuerpo-envios"></tbody>
+        </table>
+        <div class="vacio" id="vacio-envios">Sube tu Excel para empezar.</div>
+      </div>
+
+      <p class="nota">Consejo: reparte los envíos en varios días y evita mandar cientos de golpe desde un mismo número. Con dos números (tú y la novia) y por tandas, WhatsApp no lo marca como spam.</p>
     </section>
 
     <!-- ── INVITADOS ── -->
@@ -223,6 +276,7 @@
     b.addEventListener("click", function(){
       document.querySelectorAll(".pestanas button").forEach(function(o){ o.setAttribute("aria-selected", o === b); });
       $("#vista-confirmaciones").hidden = b.dataset.vista !== "confirmaciones";
+      $("#vista-envios").hidden         = b.dataset.vista !== "envios";
       $("#vista-invitados").hidden      = b.dataset.vista !== "invitados";
     });
   });
@@ -396,11 +450,8 @@
   });
 
   /* ---------- Carga del Excel ---------- */
-  $("#archivo").addEventListener("change", function(ev){
-    var f = ev.target.files[0];
-    if (!f) return;
+  function cargarExcel(f, avisoSel){
     var lector = new FileReader();
-
     lector.onload = function(e){
       try {
         var libro = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
@@ -413,7 +464,6 @@
           var id = String(r.id || "").trim().toLowerCase();
           if (!id) return;
           if (LISTA[id]) repetidos.push(id);
-          // adultos y niños. Compatibilidad: si solo hay "pases", todos adultos.
           var adultos, ninos;
           if (r.adultos !== undefined && r.adultos !== "") {
             adultos = Number(r.adultos) || 0;
@@ -433,20 +483,187 @@
         });
 
         var n = Object.keys(LISTA).length;
-        $("#aviso-carga").textContent = n + " invitaciones cargadas" +
+        var msg = n + " invitaciones cargadas" +
           (repetidos.length ? " · ¡Ojo! ids repetidos: " + repetidos.join(", ") : "");
+        if (avisoSel) $(avisoSel).textContent = msg;
+        $("#aviso-carga").textContent = msg;
         $("#btn-json").disabled = n === 0;
         $("#btn-links").disabled = n === 0;
         pintarInvitados();
+        pintarEnvios();
+        cargarEnvios();
         unir();
       } catch (err) {
-        $("#aviso-carga").textContent = "No se pudo leer el archivo: " + err.message;
+        if (avisoSel) $(avisoSel).textContent = "No se pudo leer el archivo: " + err.message;
       }
     };
     lector.readAsArrayBuffer(f);
+  }
+
+  $("#archivo").addEventListener("change", function(ev){
+    var f = ev.target.files[0];
+    if (f) cargarExcel(f, "#aviso-carga");
+  });
+  $("#archivo-envios").addEventListener("change", function(ev){
+    var f = ev.target.files[0];
+    if (f) cargarExcel(f, "#aviso-envios");
   });
 
   function linkDe(id){ return CONFIG.BASE_URL + "?id=" + encodeURIComponent(id); }
+
+  /* ---------- Envío de invitaciones por WhatsApp ---------- */
+  var ENVIADOS = {};        // id -> {marca_envio, enviado_por}
+  var ladoFiltro = "";      // "", "novio", "novia"
+
+  function cargarEnvios(){
+    if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) { pintarEnvios(); return; }
+    fetch(CONFIG.URL_SCRIPT + "?accion=listar_envios&token=" + encodeURIComponent(CONFIG.TOKEN))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.ok && d.enviados) {
+          ENVIADOS = {};
+          d.enviados.forEach(function(e){ ENVIADOS[String(e.id).toLowerCase()] = e; });
+        }
+        pintarEnvios();
+      })
+      .catch(function(){ pintarEnvios(); });
+  }
+
+  function estaEnviado(id){ return !!ENVIADOS[String(id).toLowerCase()]; }
+
+  function marcarEnviado(id){
+    var g = LISTA[id]; if (!g) return;
+    // marca local inmediata
+    ENVIADOS[id.toLowerCase()] = { marca_envio: "ahora", enviado_por: quienEnvia() };
+    pintarEnvios();
+    // guardar en el Sheet
+    if (CONFIG.URL_SCRIPT.indexOf("http") === 0) {
+      fetch(CONFIG.URL_SCRIPT, {
+        method: "POST",
+        body: JSON.stringify({
+          accion: "marcar_enviado",
+          token: CONFIG.TOKEN,
+          id: id,
+          nombre: g.nombre,
+          grupo: g.grupo,
+          enviado_por: quienEnvia()
+        })
+      }).catch(function(){});
+    }
+  }
+
+  function quienEnvia(){
+    // etiqueta según el lado que se esté enviando (para saber quién mandó)
+    return ladoFiltro || "ambos";
+  }
+
+  function idsEnvios(){
+    return Object.keys(LISTA).filter(function(id){
+      var g = LISTA[id];
+      if (ladoFiltro && g.grupo !== ladoFiltro) return false;
+      var estadoSel = $("#filtro-envio").value;
+      if (estadoSel === "pendiente" && estaEnviado(id)) return false;
+      if (estadoSel === "enviado" && !estaEnviado(id)) return false;
+      return true;
+    });
+  }
+
+  function mensajeEnvio(g, link){
+    return CONFIG.WHATSAPP_PLANTILLA.replace("{nombre}", g.nombre).replace("{link}", link);
+  }
+
+  function pintarEnvios(){
+    var cuerpo = $("#cuerpo-envios");
+    if (!cuerpo) return;
+    var ids = idsEnvios();
+    cuerpo.innerHTML = "";
+    $("#vacio-envios").hidden = Object.keys(LISTA).length > 0;
+
+    // métricas del lado actual
+    var totalLado = Object.keys(LISTA).filter(function(id){
+      return !ladoFiltro || LISTA[id].grupo === ladoFiltro;
+    });
+    var enviadosLado = totalLado.filter(estaEnviado);
+    $("#e-total").textContent = totalLado.length;
+    $("#e-enviados").textContent = enviadosLado.length;
+    $("#e-faltan").textContent = totalLado.length - enviadosLado.length;
+
+    ids.forEach(function(id, i){
+      var g = LISTA[id];
+      var link = linkDe(id);
+      var enviado = estaEnviado(id);
+      var tel = g.telefono ? "52" + g.telefono.slice(-10) : "";
+      var waHref = tel
+        ? "https://wa.me/" + tel + "?text=" + encodeURIComponent(mensajeEnvio(g, link))
+        : "https://wa.me/?text=" + encodeURIComponent(mensajeEnvio(g, link));
+      var tr = document.createElement("tr");
+      if (enviado) tr.className = "fila-enviado";
+      tr.innerHTML =
+        "<td>" + (i + 1) + "</td>" +
+        "<td>" + escapar(g.nombre) + (tel ? "" : " <small style='color:var(--no)'>(sin tel)</small>") + "</td>" +
+        "<td>" + escapar(g.grupo || "—") + "</td>" +
+        "<td><span class='estado-badge " + (enviado ? "enviado" : "pendiente") + "'>" +
+          (enviado ? "Enviado" : "Pendiente") + "</span></td>" +
+        "<td><a class='btn mini enviar-wa' target='_blank' rel='noopener' href='" + waHref + "' data-id='" + escapar(id) + "'>WhatsApp</a></td>" +
+        "<td>" + (enviado
+          ? "<button class='btn mini desmarcar' data-id='" + escapar(id) + "'>Deshacer</button>"
+          : "<button class='btn mini marcar' data-id='" + escapar(id) + "'>Marcar</button>") + "</td>";
+      cuerpo.appendChild(tr);
+    });
+
+    // al abrir WhatsApp, marcar como enviado automáticamente
+    cuerpo.querySelectorAll(".enviar-wa").forEach(function(a){
+      a.addEventListener("click", function(){
+        var id = a.dataset.id;
+        setTimeout(function(){ if (!estaEnviado(id)) marcarEnviado(id); }, 400);
+      });
+    });
+    cuerpo.querySelectorAll(".marcar").forEach(function(btn){
+      btn.addEventListener("click", function(){ marcarEnviado(btn.dataset.id); });
+    });
+    cuerpo.querySelectorAll(".desmarcar").forEach(function(btn){
+      btn.addEventListener("click", function(){ desmarcarEnviado(btn.dataset.id); });
+    });
+  }
+
+  function desmarcarEnviado(id){
+    delete ENVIADOS[id.toLowerCase()];
+    pintarEnvios();
+    if (CONFIG.URL_SCRIPT.indexOf("http") === 0) {
+      fetch(CONFIG.URL_SCRIPT, {
+        method: "POST",
+        body: JSON.stringify({ accion: "marcar_enviado", token: CONFIG.TOKEN, id: id, nombre: (LISTA[id]||{}).nombre||"", grupo: (LISTA[id]||{}).grupo||"", enviado_por: "", deshacer: true })
+      }).catch(function(){});
+    }
+  }
+
+  // botones de lado
+  document.querySelectorAll(".lado-btn").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".lado-btn").forEach(function(o){ o.classList.toggle("activo", o === b); });
+      ladoFiltro = b.dataset.lado;
+      pintarEnvios();
+    });
+  });
+  $("#filtro-envio").addEventListener("change", pintarEnvios);
+  $("#btn-refrescar-envios").addEventListener("click", cargarEnvios);
+
+  // abrir siguiente tanda de 20 pendientes
+  $("#btn-abrir-tanda").addEventListener("click", function(){
+    var pend = idsEnvios().filter(function(id){ return !estaEnviado(id) && LISTA[id].telefono; }).slice(0, 20);
+    if (!pend.length) { $("#aviso-envios").textContent = "No hay pendientes en este lado."; return; }
+    $("#aviso-envios").textContent = "Abriendo " + pend.length + " chats… autoriza las ventanas emergentes si el navegador las bloquea.";
+    pend.forEach(function(id, i){
+      var g = LISTA[id];
+      var link = linkDe(id);
+      var tel = "52" + g.telefono.slice(-10);
+      var href = "https://wa.me/" + tel + "?text=" + encodeURIComponent(mensajeEnvio(g, link));
+      setTimeout(function(){
+        window.open(href, "_blank");
+        marcarEnviado(id);
+      }, i * 600);
+    });
+  });
 
   function pintarInvitados(){
     var ids = Object.keys(LISTA);
