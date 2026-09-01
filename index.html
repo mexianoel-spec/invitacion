@@ -487,18 +487,18 @@
   #itinerario .titulo-seccion .eyebrow{text-shadow:0 1px 10px rgba(0,0,0,.6)}
   .foto-itinerario{display:none}
   .itinerario{
-    max-width:520px;
+    max-width:400px;
     margin-inline:auto;
     position:relative;
   }
   .linea-tiempo{
     position:relative;
-    padding-left:clamp(3.4rem,10vw,4.4rem);
+    padding-left:clamp(2.8rem,8vw,3.6rem);
   }
   .linea-tiempo::before{
     content:"";
     position:absolute;
-    left:clamp(1.05rem,3.4vw,1.4rem);
+    left:clamp(.9rem,2.8vw,1.15rem);
     top:1.4rem;
     bottom:1.4rem;
     width:1px;
@@ -509,12 +509,13 @@
     padding:clamp(1rem,3vw,1.4rem) 0;
     display:flex;
     align-items:baseline;
-    gap:1rem;
-    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:.7rem;
+    flex-wrap:nowrap;
   }
   .hito .icono-hito{
     position:absolute;
-    left:calc(-1 * clamp(3.4rem,10vw,4.4rem) + clamp(.15rem,.6vw,.25rem));
+    left:calc(-1 * clamp(2.8rem,8vw,3.6rem) + clamp(.1rem,.5vw,.2rem));
     top:calc(50% - 17px);
     width:34px;height:34px;
     border-radius:50%;
@@ -536,19 +537,20 @@
   .hito .momento{
     font-family:var(--display);
     font-weight:400;
-    font-size:clamp(1.5rem,4vw,2rem);
+    font-size:clamp(1.4rem,4vw,1.85rem);
     color:var(--marfil);
     line-height:1.1;
-    flex:1;
     min-width:0;
   }
   .hito .hora-hito{
     font-family:var(--cuerpo);
     font-weight:300;
-    font-size:.9rem;
-    letter-spacing:.14em;
+    font-size:.82rem;
+    letter-spacing:.1em;
     color:var(--laton);
     text-transform:uppercase;
+    white-space:nowrap;
+    flex-shrink:0;
   }
 
 
@@ -2023,11 +2025,11 @@
         titulo: "Cómo comenzó",
         frase: "Dos miradas que se encontraron y ya no se soltaron.",
         fotos: [
-          { archivo: "fotos/historia-01.jpg", enfoque: "50% 40%" },
-          { archivo: "fotos/historia-02.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-03.jpg", enfoque: "50% 50%" },
-          { archivo: "fotos/historia-04.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-05.jpg", enfoque: "50% 50%" }
+          { archivo: "fotos/historia-01.jpeg", enfoque: "50% 40%" },
+          { archivo: "fotos/historia-02.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-03.jpeg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-04.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-05.jpeg", enfoque: "50% 50%" }
         ]
       },
       {
@@ -2035,15 +2037,15 @@
         titulo: "Nuestras aventuras",
         frase: "Cada lugar fue mejor contigo a mi lado.",
         fotos: [
-          { archivo: "fotos/historia-06.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-07.jpg", enfoque: "50% 50%" },
-          { archivo: "fotos/historia-08.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-09.jpg", enfoque: "50% 50%" },
-          { archivo: "fotos/historia-10.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-11.jpg", enfoque: "50% 50%" },
-          { archivo: "fotos/historia-12.jpg", enfoque: "50% 45%" },
-          { archivo: "fotos/historia-13.jpg", enfoque: "50% 50%" },
-          { archivo: "fotos/historia-14.jpg", enfoque: "50% 45%" }
+          { archivo: "fotos/historia-06.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-07.jpeg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-08.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-09.jpeg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-10.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-11.jpeg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-12.jpeg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-13.jpeg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-14.jpeg", enfoque: "50% 45%" }
         ]
       },
       {
@@ -2051,7 +2053,7 @@
         titulo: "La pedida",
         frase: "Un sí que cambió nuestro para siempre.",
         fotos: [
-          { archivo: "fotos/historia-15.jpg", enfoque: "50% 40%" }
+          { archivo: "fotos/historia-15.jpeg", enfoque: "50% 40%" }
         ]
       },
       {
