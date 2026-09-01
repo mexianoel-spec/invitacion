@@ -964,6 +964,65 @@
     .mosaico button:nth-child(6){grid-column:span 2}
   }
 
+  /* ── Nuestra historia (momentos) ── */
+  .historia{ display:flex; flex-direction:column; gap:clamp(3rem,7vw,5rem); }
+  .momento{ text-align:center; }
+  .momento .anio{
+    font-family:var(--cuerpo);
+    font-size:.64rem;
+    letter-spacing:.34em;
+    text-transform:uppercase;
+    color:var(--laton);
+    margin-bottom:.8rem;
+  }
+  .momento h3{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:clamp(1.7rem,5.5vw,2.5rem);
+    color:var(--marfil);
+    margin:0 0 .7rem;
+  }
+  .momento .frase{
+    font-family:var(--display);
+    font-style:italic;
+    font-size:clamp(1rem,3.4vw,1.25rem);
+    color:var(--marfil-tenue);
+    max-width:34ch;
+    margin:0 auto clamp(1.4rem,4vw,2.1rem);
+    line-height:1.5;
+  }
+  .momento-fotos{
+    display:grid;
+    gap:.7rem;
+  }
+  /* 1 foto: grande. 2: lado a lado. 3: una grande + dos. 4+: rejilla */
+  .momento-fotos.n1{ grid-template-columns:1fr; max-width:560px; margin:0 auto; }
+  .momento-fotos.n2{ grid-template-columns:repeat(2,1fr); }
+  .momento-fotos.n3{ grid-template-columns:repeat(2,1fr); }
+  .momento-fotos.n3 > button:nth-child(1){ grid-column:1 / -1; aspect-ratio:16/10; }
+  .momento-fotos.n4{ grid-template-columns:repeat(2,1fr); }
+  .momento-fotos.muchas{ grid-template-columns:repeat(3,1fr); }
+  .momento-fotos button{
+    border:0; padding:0; margin:0;
+    background:var(--olivo-hondo);
+    cursor:pointer; overflow:hidden; position:relative;
+    aspect-ratio:1/1;
+  }
+  .momento-fotos.n1 button{ aspect-ratio:16/10; }
+  .momento-fotos.n2 button{ aspect-ratio:4/5; }
+  .momento-fotos img{
+    width:100%; height:100%;
+    object-fit:cover; display:block;
+    filter:saturate(.9);
+    transition:transform .7s cubic-bezier(.2,.7,.3,1), filter .5s ease;
+  }
+  .momento-fotos button:hover img,
+  .momento-fotos button:focus-visible img{ transform:scale(1.06); filter:saturate(1); }
+  @media(max-width:640px){
+    .momento-fotos.muchas{ grid-template-columns:repeat(2,1fr); }
+    .momento-fotos.n3 > button:nth-child(1){ aspect-ratio:4/3; }
+  }
+
   /* ---------- LIGHTBOX ---------- */
   .visor{
     position:fixed;inset:0;z-index:100;
@@ -1696,7 +1755,7 @@
       <p class="eyebrow">Nosotros</p>
       <h2>Un poco de nuestra historia</h2>
     </div>
-    <div class="mosaico revelar" id="mosaico"></div>
+    <div class="historia" id="historia"></div>
   </div>
 </section>
 
@@ -1954,15 +2013,61 @@
     /* Foto del banner antes de papás y padrinos (imagen 1). */
     FOTO_BANNER_FAM: "fotos/foto-1.jpg",
 
-    /* Fotos de la galería. La 1 ocupa el cuadro grande y la 6 la tira ancha.
-       "enfoque" mueve el recorte para que nadie quede cortado. */
-    GALERIA: [
-      { archivo: "fotos/foto-1.jpg", texto: "Monserrat y Noel",  enfoque: "42% 42%" },
-      { archivo: "fotos/foto-2.jpg", texto: "Monserrat y Noel",  enfoque: "58% 50%" },
-      { archivo: "fotos/foto-3.jpg", texto: "Monserrat y Noel",  enfoque: "50% 55%" },
-      { archivo: "fotos/foto-4.jpg", texto: "Monserrat y Noel",  enfoque: "55% 60%" },
-      { archivo: "fotos/foto-5.jpg", texto: "Monserrat y Noel",  enfoque: "50% 40%" },
-      { archivo: "fotos/foto-6.jpg", texto: "Monserrat y Noel",  enfoque: "50% 45%" }
+    /* ── Nuestra historia, agrupada en momentos ──
+       Cada momento tiene un año, un título, una frase corta y sus fotos.
+       Sube tus fotos a la carpeta fotos/ con estos nombres (o cámbialos aquí).
+       Puedes agregar o quitar fotos de cada momento sin problema. */
+    HISTORIA: [
+      {
+        anio: "2018",
+        titulo: "Cómo comenzó",
+        frase: "Dos miradas que se encontraron y ya no se soltaron.",
+        fotos: [
+          { archivo: "fotos/historia-01.jpg", enfoque: "50% 40%" },
+          { archivo: "fotos/historia-02.jpg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-03.jpg", enfoque: "50% 50%" }
+        ]
+      },
+      {
+        anio: "2018 — 2026",
+        titulo: "Nuestras aventuras",
+        frase: "Cada lugar fue mejor contigo a mi lado.",
+        fotos: [
+          { archivo: "fotos/historia-04.jpg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-05.jpg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-06.jpg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-07.jpg", enfoque: "50% 50%" }
+        ]
+      },
+      {
+        anio: "2025",
+        titulo: "La propuesta",
+        frase: "Un sí que cambió nuestro para siempre.",
+        fotos: [
+          { archivo: "fotos/historia-08.jpg", enfoque: "50% 40%" },
+          { archivo: "fotos/historia-09.jpg", enfoque: "50% 50%" },
+          { archivo: "fotos/historia-10.jpg", enfoque: "50% 45%" }
+        ]
+      },
+      {
+        anio: "2025",
+        titulo: "Camino al altar",
+        frase: "Soñando juntos el día más esperado.",
+        fotos: [
+          { archivo: "fotos/historia-11.jpg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-12.jpg", enfoque: "50% 50%" }
+        ]
+      },
+      {
+        anio: "2026",
+        titulo: "Save the Date",
+        frase: "Y llegó el momento de decir: ¡nos casamos!",
+        fotos: [
+          { archivo: "fotos/historia-13.jpg", enfoque: "50% 40%" },
+          { archivo: "fotos/historia-14.jpg", enfoque: "50% 45%" },
+          { archivo: "fotos/historia-15.jpg", enfoque: "50% 50%" }
+        ]
+      }
     ],
 
     /* Canción de fondo. Déjala vacía ("") para no mostrar el botón. */
@@ -2512,29 +2617,59 @@
     });
   })();
 
-  /* ---------- Galería y visor ---------- */
-  var FOTOS = CONFIG.GALERIA || [];
-  var mosaico = document.getElementById("mosaico");
+  /* ---------- Nuestra historia y visor ---------- */
+  var MOMENTOS = CONFIG.HISTORIA || [];
+  // aplanar todas las fotos para el visor (lightbox)
+  var FOTOS = [];
+  MOMENTOS.forEach(function(m){
+    (m.fotos || []).forEach(function(f){
+      FOTOS.push({ archivo: f.archivo, texto: m.titulo, enfoque: f.enfoque });
+    });
+  });
+
+  var historiaCont = document.getElementById("historia");
   var visor   = document.getElementById("visor");
   var vImg    = document.getElementById("v-img");
   var vCuenta = document.getElementById("v-cuenta");
   var actual  = 0;
   var ultimoFoco = null;
 
-  FOTOS.forEach(function(f, i){
-    var b = document.createElement("button");
-    b.type = "button";
-    b.setAttribute("aria-label", "Ver foto " + (i + 1));
-    var img = document.createElement("img");
-    img.src = f.archivo;
-    img.alt = f.texto || "";
-    img.loading = "lazy";
-    if (f.enfoque) img.style.objectPosition = f.enfoque;
-    img.onerror = function(){ b.style.display = "none"; };
-    b.appendChild(img);
-    b.addEventListener("click", function(){ abrirVisor(i); });
-    mosaico.appendChild(b);
-  });
+  var indiceGlobal = 0;
+  if (historiaCont) {
+    MOMENTOS.forEach(function(m){
+      var wrap = document.createElement("div");
+      wrap.className = "momento revelar";
+
+      var enc = "";
+      if (m.anio)   enc += '<p class="anio">' + m.anio + '</p>';
+      if (m.titulo) enc += '<h3>' + m.titulo + '</h3>';
+      if (m.frase)  enc += '<p class="frase">' + m.frase + '</p>';
+      wrap.innerHTML = enc;
+
+      var grid = document.createElement("div");
+      var n = (m.fotos || []).length;
+      grid.className = "momento-fotos " + (n >= 5 ? "muchas" : "n" + n);
+
+      (m.fotos || []).forEach(function(f){
+        var idx = indiceGlobal++;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("aria-label", "Ver foto de " + (m.titulo || "nuestra historia"));
+        var img = document.createElement("img");
+        img.src = f.archivo;
+        img.alt = m.titulo || "";
+        img.loading = "lazy";
+        if (f.enfoque) img.style.objectPosition = f.enfoque;
+        img.onerror = function(){ b.style.display = "none"; };
+        b.appendChild(img);
+        b.addEventListener("click", function(){ abrirVisor(idx); });
+        grid.appendChild(b);
+      });
+
+      wrap.appendChild(grid);
+      historiaCont.appendChild(wrap);
+    });
+  }
 
   if (!FOTOS.length) {
     var sec = document.getElementById("galeria");
