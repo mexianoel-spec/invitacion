@@ -59,6 +59,105 @@
   .estado-badge.enviado{background:rgba(120,150,90,.2);color:var(--si)}
   tr.fila-enviado{opacity:.6}
 
+  /* ── Mapa de mesas ── */
+  .mesas-layout{display:grid;grid-template-columns:300px 1fr;gap:1.4rem;align-items:start}
+  @media(max-width:860px){.mesas-layout{grid-template-columns:1fr}}
+  .panel-familias{border:1px solid var(--linea);padding:1rem;border-radius:4px;background:rgba(0,0,0,.12)}
+  .panel-titulo{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.7rem}
+  .panel-titulo span{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--laton)}
+  .panel-titulo select,#buscar-familia{background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.4rem .5rem;font-family:var(--cuerpo);font-size:.8rem;border-radius:3px}
+  #buscar-familia{width:100%;margin-bottom:.7rem;box-sizing:border-box}
+  .lista-familias{max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem}
+  .fam-chip{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .7rem;border:1px solid var(--linea);border-radius:3px;cursor:pointer;transition:border-color .2s,background .2s;font-size:.86rem}
+  .fam-chip:hover{border-color:var(--laton)}
+  .fam-chip.sel{border-color:var(--laton);background:rgba(183,155,98,.14)}
+  .fam-chip .fam-pases{font-size:.7rem;color:var(--tenue);white-space:nowrap}
+  .fam-chip .fam-mesa{font-size:.64rem;color:var(--laton);white-space:nowrap}
+
+  .panel-mapa{min-width:0}
+  .mapa-acciones{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+  .btn.mini{padding:.4rem .7rem;font-size:.56rem}
+
+  .salon{
+    position:relative;
+    border:1px solid var(--linea);
+    border-radius:6px;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,transparent 1px 40px),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 40px),
+      rgba(0,0,0,.15);
+    padding:1.4rem;
+    min-height:520px;
+  }
+  /* layout horizontal: bloque arriba, escenario, bloque abajo */
+  .salon.horizontal{
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+    align-items:stretch;
+  }
+  .bloque{display:flex;flex-direction:column;gap:.7rem;align-items:center}
+
+  .escenario{
+    align-self:center;
+    text-align:center;
+    padding:.9rem 2.5rem;
+    border:1px dashed var(--laton);
+    border-radius:6px;
+    color:var(--laton);
+    font-size:.7rem;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    background:rgba(183,155,98,.06);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .escenario.horizontal{ width:min(70%,440px); }
+
+  .fila-mesas{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;align-items:flex-end}
+  .fila-mesas.centro-fila{align-items:center}
+  .fila-mesas.abraza-fila{margin:0}
+
+  .mesa{
+    position:relative;
+    border:1px solid var(--linea);
+    background:rgba(0,0,0,.2);
+    color:var(--marfil);
+    cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:.15rem;
+    transition:border-color .2s,background .2s,transform .15s;
+    font-family:var(--cuerpo);
+    -webkit-tap-highlight-color:transparent;
+    text-align:center;
+    padding:.3rem;
+  }
+  .mesa:hover{border-color:var(--laton);transform:translateY(-1px)}
+  .mesa.destino{border-color:var(--laton);box-shadow:0 0 0 2px rgba(183,155,98,.35)}
+  .mesa .m-nom{font-size:.62rem;letter-spacing:.06em}
+  .mesa .m-ocupado{font-size:.7rem;color:var(--laton);font-family:var(--display)}
+  .mesa.llena{background:rgba(120,150,90,.16);border-color:var(--si)}
+  .mesa.vacia .m-ocupado{color:var(--tenue)}
+
+  /* formas */
+  .mesa.rect{width:86px;height:54px;border-radius:3px}
+  .mesa.rect.v{width:54px;height:86px}
+  .mesa.redonda{width:96px;height:96px;border-radius:50%}
+  /* media luna de arriba: curva hacia abajo (abraza el escenario por arriba) */
+  .mesa.medialuna{width:150px;height:64px}
+  .bloque.arriba .mesa.medialuna{border-radius:8px 8px 80px 80px}
+  /* media luna de abajo: curva hacia arriba */
+  .bloque.abajo .mesa.medialuna{border-radius:80px 80px 8px 8px}
+
+  /* detalle de mesa */
+  .mesa-detalle{position:fixed;inset:0;background:rgba(15,18,10,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:1rem}
+  .mesa-detalle[hidden]{display:none}
+  .mesa-detalle-caja{background:var(--olivo-hondo);border:1px solid var(--laton);border-radius:8px;padding:1.6rem;max-width:420px;width:100%;position:relative}
+  .cerrar-detalle{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:var(--marfil);font-size:1.6rem;cursor:pointer;line-height:1}
+  .mesa-detalle h3{font-family:var(--display);color:var(--marfil);margin:0 0 .3rem}
+  .detalle-cupo{color:var(--laton);font-size:.8rem;margin-bottom:1rem}
+  .detalle-fam{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.5rem 0;border-top:1px solid var(--linea);font-size:.9rem}
+  .detalle-fam button{background:none;border:1px solid var(--no);color:var(--no);border-radius:3px;padding:.25rem .5rem;font-size:.62rem;cursor:pointer;text-transform:uppercase;letter-spacing:.1em}
+
   .acciones{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1.6rem}
 
   .metricas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
@@ -117,6 +216,7 @@
       <button role="tab" aria-selected="true"  data-vista="confirmaciones">Confirmaciones</button>
       <button role="tab" aria-selected="false" data-vista="envios">Enviar invitaciones</button>
       <button role="tab" aria-selected="false" data-vista="invitados">Lista e invitaciones</button>
+      <button role="tab" aria-selected="false" data-vista="mesas">Mapa de mesas</button>
     </div>
 
     <!-- ── CONFIRMACIONES ── -->
@@ -235,6 +335,50 @@
       <p class="nota">El archivo <strong>invitados.json</strong> va en la misma carpeta que <strong>index.html</strong>, en tu repositorio. Cada vez que edites el Excel, vuelve a generarlo y súbelo. Se genera sin teléfonos, porque ese archivo queda visible en internet — para mandar los links por WhatsApp carga aquí tu Excel y usa los botones de esta tabla.</p>
     </section>
 
+    <!-- ── MAPA DE MESAS ── -->
+    <section id="vista-mesas" hidden>
+      <div class="zona">
+        <p>Asigna cada familia a su mesa. Toca una familia de la lista y luego la mesa en el mapa. Todo se guarda en tu Google Sheet para el día del evento. Necesitas haber cargado tu Excel (en "Lista e invitaciones") y las confirmaciones se leen solas.</p>
+      </div>
+
+      <div class="mesas-layout">
+        <!-- panel izquierdo: familias por asignar -->
+        <div class="panel-familias">
+          <div class="panel-titulo">
+            <span>Familias</span>
+            <select id="filtro-familias">
+              <option value="sin">Sin mesa</option>
+              <option value="si">Solo confirmadas</option>
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+          <input type="text" id="buscar-familia" placeholder="Buscar familia…">
+          <div id="lista-familias" class="lista-familias"></div>
+        </div>
+
+        <!-- panel derecho: mapa del salón -->
+        <div class="panel-mapa">
+          <div class="mapa-acciones">
+            <button class="btn solido mini" id="btn-guardar-mesas">Guardar cambios</button>
+            <button class="btn mini" id="btn-descargar-checkin">Descargar para check-in</button>
+            <button class="btn mini" id="btn-editar-mesas">Editar mesas</button>
+            <span class="nota" id="aviso-mesas"></span>
+          </div>
+          <div class="salon" id="salon"></div>
+        </div>
+      </div>
+
+      <!-- detalle de una mesa (se abre al tocarla) -->
+      <div class="mesa-detalle" id="mesa-detalle" hidden>
+        <div class="mesa-detalle-caja">
+          <button class="cerrar-detalle" id="cerrar-detalle" aria-label="Cerrar">×</button>
+          <h3 id="detalle-titulo">Mesa</h3>
+          <p class="detalle-cupo" id="detalle-cupo"></p>
+          <div id="detalle-familias"></div>
+        </div>
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -278,6 +422,8 @@
       $("#vista-confirmaciones").hidden = b.dataset.vista !== "confirmaciones";
       $("#vista-envios").hidden         = b.dataset.vista !== "envios";
       $("#vista-invitados").hidden      = b.dataset.vista !== "invitados";
+      $("#vista-mesas").hidden          = b.dataset.vista !== "mesas";
+      if (b.dataset.vista === "mesas") { cargarMesas(); pintarMapa(); pintarFamilias(); }
     });
   });
 
@@ -663,6 +809,294 @@
         marcarEnviado(id);
       }, i * 600);
     });
+  });
+
+  /* ---------- Mapa de mesas ---------- */
+  // Layout según el boceto: escenario HORIZONTAL al centro. Dos bloques,
+  // arriba y abajo del escenario. Cada bloque: media luna abrazando el
+  // escenario, una redonda al centro, y rectangulares alrededor (unas
+  // horizontales, otras verticales). 20 mesas: 2 medias lunas, 2 redondas,
+  // 16 rectangulares (8 por bloque). Editable.
+  var MESAS_DEFAULT = (function(){
+    var arr = [];
+    var n = 1;
+    function add(tipo, cap, bloque, zona, forma){
+      arr.push({ id: "m" + n, nombre: "Mesa " + n, tipo: tipo, cap: cap, bloque: bloque, zona: zona, forma: forma || "" });
+      n++;
+    }
+    // ── BLOQUE ARRIBA ──  (de arriba hacia el escenario)
+    add("rect", 8, "arriba", "fila-lejos", "h");   // 1
+    add("rect", 8, "arriba", "fila-lejos", "h");   // 2
+    add("rect", 8, "arriba", "fila-lejos", "h");   // 3
+    add("rect", 8, "arriba", "lados-redonda", "v"); // 4  (izq de la redonda)
+    add("redonda", 16, "arriba", "centro", "");     // 5  redonda centro
+    add("rect", 8, "arriba", "lados-redonda", "v"); // 6  (der de la redonda)
+    add("rect", 8, "arriba", "cerca", "h");         // 7
+    add("rect", 8, "arriba", "cerca", "h");         // 8
+    add("medialuna", 12, "arriba", "abraza", "");   // 9  media luna arriba del escenario
+    // ── BLOQUE ABAJO ──  (del escenario hacia abajo, espejo)
+    add("medialuna", 12, "abajo", "abraza", "");    // 10 media luna abajo del escenario
+    add("rect", 8, "abajo", "cerca", "h");          // 11
+    add("rect", 8, "abajo", "cerca", "h");          // 12
+    add("rect", 8, "abajo", "lados-redonda", "v");  // 13
+    add("redonda", 16, "abajo", "centro", "");      // 14 redonda centro
+    add("rect", 8, "abajo", "lados-redonda", "v");  // 15
+    add("rect", 8, "abajo", "fila-lejos", "h");     // 16
+    add("rect", 8, "abajo", "fila-lejos", "h");     // 17
+    add("rect", 8, "abajo", "fila-lejos", "h");     // 18
+    // dos rectangulares extra para completar 20 (una a cada bloque, en las orillas)
+    add("rect", 8, "arriba", "orilla", "v");        // 19
+    add("rect", 8, "abajo", "orilla", "v");         // 20
+    return arr;
+  })();
+
+  var MESAS = [];           // definición actual de mesas
+  var ASIGNACION = {};      // id_familia -> id_mesa
+  var famSel = null;        // familia seleccionada para asignar
+
+  function cargarMesas(){
+    // 1) definición de mesas: localStorage o default
+    try {
+      var g = JSON.parse(localStorage.getItem("mesas_def") || "null");
+      MESAS = (g && g.length) ? g : JSON.parse(JSON.stringify(MESAS_DEFAULT));
+    } catch(e){ MESAS = JSON.parse(JSON.stringify(MESAS_DEFAULT)); }
+    // 2) asignaciones: localStorage primero (rápido), luego Sheet si hay red
+    try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
+    if (CONFIG.URL_SCRIPT.indexOf("http") === 0) {
+      fetch(CONFIG.URL_SCRIPT + "?accion=listar_mesas&token=" + encodeURIComponent(CONFIG.TOKEN))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d.ok && d.asignacion) {
+            ASIGNACION = d.asignacion;
+            localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
+            pintarMapa(); pintarFamilias();
+          }
+        }).catch(function(){});
+    }
+  }
+
+  function familiasArr(){
+    // usa LISTA (del Excel). Si no hay Excel, usa lo que haya en FILAS (confirmaciones)
+    var fuente = Object.keys(LISTA).length ? LISTA : {};
+    if (!Object.keys(fuente).length && typeof FILAS !== "undefined") {
+      FILAS.forEach(function(f){ fuente[f.id] = { nombre: f.nombre, pases: f.pases, adultos: f.adultos, ninos: f.ninos, grupo: f.grupo }; });
+    }
+    return Object.keys(fuente).map(function(id){
+      var g = fuente[id];
+      var conf = null;
+      if (typeof FILAS !== "undefined") {
+        var reg = FILAS.filter(function(x){ return x.id === id; })[0];
+        if (reg && reg.respuesta === "si") conf = (reg.total_confirma != null ? reg.total_confirma : reg.pases);
+        if (reg && reg.respuesta === "no") conf = 0;
+      }
+      return { id: id, nombre: g.nombre, pases: g.pases || 0, confirma: conf, grupo: g.grupo || "", mesa: ASIGNACION[id] || null };
+    });
+  }
+
+  function ocupacionMesa(mid){
+    var fams = familiasArr().filter(function(f){ return f.mesa === mid; });
+    var total = fams.reduce(function(a,f){
+      var n = (f.confirma != null) ? f.confirma : f.pases;
+      return a + (n || 0);
+    }, 0);
+    return { fams: fams, total: total };
+  }
+
+  function pintarMapa(){
+    var salon = $("#salon");
+    if (!salon) return;
+    salon.innerHTML = "";
+    salon.classList.add("horizontal");
+
+    function bloque(cual){
+      var b = document.createElement("div");
+      b.className = "bloque " + cual;
+      var mesasB = MESAS.filter(function(m){ return m.bloque === cual; });
+
+      function porZona(z){ return mesasB.filter(function(m){ return m.zona === z; }); }
+      function filaDe(mesas, clase){
+        if (!mesas.length) return;
+        var fila = document.createElement("div");
+        fila.className = "fila-mesas " + (clase || "");
+        mesas.forEach(function(m){ fila.appendChild(nodoMesa(m)); });
+        b.appendChild(fila);
+      }
+
+      if (cual === "arriba") {
+        // orden de arriba hacia el escenario
+        filaDe(porZona("fila-lejos"), "");
+        // redonda al centro, con verticales a los lados y la orilla
+        var medio = porZona("lados-redonda").concat(porZona("centro")).concat(porZona("orilla"));
+        // reordenar: v, redonda, v, orilla
+        var izq = porZona("lados-redonda")[0];
+        var red = porZona("centro")[0];
+        var der = porZona("lados-redonda")[1];
+        var ori = porZona("orilla")[0];
+        var fmedio = [izq, red, der, ori].filter(Boolean);
+        filaDe(fmedio, "centro-fila");
+        filaDe(porZona("cerca"), "");
+        filaDe(porZona("abraza"), "abraza-fila");
+      } else {
+        // bloque abajo: espejo (del escenario hacia abajo)
+        filaDe(porZona("abraza"), "abraza-fila");
+        filaDe(porZona("cerca"), "");
+        var izq2 = porZona("lados-redonda")[0];
+        var red2 = porZona("centro")[0];
+        var der2 = porZona("lados-redonda")[1];
+        var ori2 = porZona("orilla")[0];
+        filaDe([izq2, red2, der2, ori2].filter(Boolean), "centro-fila");
+        filaDe(porZona("fila-lejos"), "");
+      }
+      return b;
+    }
+
+    salon.appendChild(bloque("arriba"));
+    var esc = document.createElement("div");
+    esc.className = "escenario horizontal";
+    esc.textContent = "Escenario";
+    salon.appendChild(esc);
+    salon.appendChild(bloque("abajo"));
+  }
+
+  function nodoMesa(m){
+    var oc = ocupacionMesa(m.id);
+    var el = document.createElement("button");
+    el.type = "button";
+    el.className = "mesa " + m.tipo + (m.forma ? " " + m.forma : "") +
+                   (oc.total >= m.cap ? " llena" : (oc.total === 0 ? " vacia" : ""));
+    if (famSel) el.classList.add("destino");
+    el.innerHTML = "<span class='m-nom'>" + escapar(m.nombre) + "</span>" +
+                   "<span class='m-ocupado'>" + oc.total + "/" + m.cap + "</span>";
+    el.addEventListener("click", function(){
+      if (famSel) {
+        asignar(famSel, m.id);
+        famSel = null;
+        pintarFamilias(); pintarMapa();
+      } else {
+        abrirDetalle(m);
+      }
+    });
+    return el;
+  }
+
+  function asignar(idFam, idMesa){
+    ASIGNACION[idFam] = idMesa;
+    localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
+  }
+  function quitar(idFam){
+    delete ASIGNACION[idFam];
+    localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
+  }
+
+  function pintarFamilias(){
+    var cont = $("#lista-familias");
+    if (!cont) return;
+    var filtro = $("#filtro-familias").value;
+    var q = ($("#buscar-familia").value || "").toLowerCase();
+    var fams = familiasArr().filter(function(f){
+      if (filtro === "sin" && f.mesa) return false;
+      if (filtro === "si" && f.confirma == null) return false;
+      if (q && f.nombre.toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    }).sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+
+    cont.innerHTML = "";
+    fams.forEach(function(f){
+      var chip = document.createElement("div");
+      chip.className = "fam-chip" + (famSel === f.id ? " sel" : "");
+      var pases = (f.confirma != null) ? (f.confirma + " conf.") : (f.pases + " res.");
+      var mesaNom = f.mesa ? nombreMesa(f.mesa) : "";
+      chip.innerHTML = "<span>" + escapar(f.nombre) + "</span>" +
+        "<span>" + (mesaNom ? "<span class='fam-mesa'>" + escapar(mesaNom) + "</span> " : "") +
+        "<span class='fam-pases'>" + pases + "</span></span>";
+      chip.addEventListener("click", function(){
+        famSel = (famSel === f.id) ? null : f.id;
+        pintarFamilias(); pintarMapa();
+      });
+      cont.appendChild(chip);
+    });
+    if (!fams.length) cont.innerHTML = "<p class='nota'>Sin familias para mostrar. Carga tu Excel en \"Lista e invitaciones\".</p>";
+  }
+
+  function nombreMesa(mid){
+    var m = MESAS.filter(function(x){ return x.id === mid; })[0];
+    return m ? m.nombre : mid;
+  }
+
+  function abrirDetalle(m){
+    var oc = ocupacionMesa(m.id);
+    $("#detalle-titulo").textContent = m.nombre + " · " + (m.tipo === "medialuna" ? "Media luna" : m.tipo === "redonda" ? "Redonda" : "Rectangular");
+    $("#detalle-cupo").textContent = oc.total + " de " + m.cap + " lugares ocupados";
+    var cont = $("#detalle-familias");
+    cont.innerHTML = "";
+    if (!oc.fams.length) cont.innerHTML = "<p class='nota'>Nadie asignado todavía.</p>";
+    oc.fams.forEach(function(f){
+      var row = document.createElement("div");
+      row.className = "detalle-fam";
+      var n = (f.confirma != null) ? f.confirma : f.pases;
+      row.innerHTML = "<span>" + escapar(f.nombre) + " <small style='color:var(--tenue)'>(" + n + ")</small></span>";
+      var btn = document.createElement("button");
+      btn.textContent = "Quitar";
+      btn.addEventListener("click", function(){ quitar(f.id); abrirDetalle(m); pintarMapa(); pintarFamilias(); });
+      row.appendChild(btn);
+      cont.appendChild(row);
+    });
+    $("#mesa-detalle").hidden = false;
+  }
+
+  if ($("#cerrar-detalle")) $("#cerrar-detalle").addEventListener("click", function(){ $("#mesa-detalle").hidden = true; });
+  if ($("#mesa-detalle")) $("#mesa-detalle").addEventListener("click", function(e){ if (e.target === this) this.hidden = true; });
+  if ($("#filtro-familias")) $("#filtro-familias").addEventListener("change", pintarFamilias);
+  if ($("#buscar-familia")) $("#buscar-familia").addEventListener("input", pintarFamilias);
+
+  // guardar asignaciones en el Sheet
+  if ($("#btn-guardar-mesas")) $("#btn-guardar-mesas").addEventListener("click", function(){
+    $("#aviso-mesas").textContent = "Guardando…";
+    localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
+    localStorage.setItem("mesas_def", JSON.stringify(MESAS));
+    if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) { $("#aviso-mesas").textContent = "Guardado local (configura la URL para sincronizar)."; return; }
+    fetch(CONFIG.URL_SCRIPT, {
+      method: "POST",
+      body: JSON.stringify({ accion: "guardar_mesas", token: CONFIG.TOKEN, asignacion: ASIGNACION })
+    }).then(function(r){ return r.json(); })
+      .then(function(d){ $("#aviso-mesas").textContent = d.ok ? "Guardado ✓" : ("Error: " + (d.error||"")); })
+      .catch(function(){ $("#aviso-mesas").textContent = "Se guardó local, pero no se pudo sincronizar (revisa la conexión)."; });
+  });
+
+  // editar mesas (nombres y capacidades) por prompt sencillo
+  if ($("#btn-editar-mesas")) $("#btn-editar-mesas").addEventListener("click", function(){
+    var txt = MESAS.map(function(m){ return m.nombre + " | " + m.cap; }).join("\n");
+    var nuevo = prompt("Edita nombre y capacidad de cada mesa (una por línea, formato: Nombre | capacidad). Mantén el mismo número de líneas (" + MESAS.length + ").", txt);
+    if (nuevo == null) return;
+    var lineas = nuevo.split("\n");
+    if (lineas.length !== MESAS.length) { alert("Deben ser " + MESAS.length + " líneas, una por mesa."); return; }
+    lineas.forEach(function(l, i){
+      var partes = l.split("|");
+      MESAS[i].nombre = (partes[0] || MESAS[i].nombre).trim();
+      var c = parseInt(partes[1], 10);
+      if (!isNaN(c) && c > 0) MESAS[i].cap = c;
+    });
+    localStorage.setItem("mesas_def", JSON.stringify(MESAS));
+    pintarMapa();
+  });
+
+  // descargar archivo de check-in (para usar sin internet en el salón)
+  if ($("#btn-descargar-checkin")) $("#btn-descargar-checkin").addEventListener("click", function(){
+    var datos = {
+      generado: new Date().toISOString(),
+      evento: "Boda Monserrat & Noel — 15 nov 2026",
+      mesas: MESAS,
+      invitados: familiasArr().map(function(f){
+        return { id: f.id, nombre: f.nombre, pases: (f.confirma != null ? f.confirma : f.pases), grupo: f.grupo, mesa: f.mesa, mesa_nombre: f.mesa ? nombreMesa(f.mesa) : "" };
+      })
+    };
+    var blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "checkin-datos.json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+    $("#aviso-mesas").textContent = "Descargado. Súbelo a la tablet en la página de check-in.";
   });
 
   function pintarInvitados(){
