@@ -54,6 +54,9 @@
   .lado-botones{display:flex;gap:.5rem;flex-wrap:wrap}
   .lado-btn{padding:.55rem 1rem}
   .lado-btn.activo{background:var(--laton);color:var(--olivo-hondo)}
+  .modo-mensaje{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+  .modo-btn{padding:.55rem 1rem}
+  .modo-btn.activo{background:var(--laton);color:var(--olivo-hondo)}
   .estado-badge{display:inline-block;padding:.24rem .6rem;border-radius:999px;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
   .estado-badge.pendiente{background:rgba(183,155,98,.16);color:var(--laton)}
   .estado-badge.enviado{background:rgba(120,150,90,.2);color:var(--si)}
@@ -277,6 +280,11 @@
         <div class="metrica"><strong id="e-faltan">0</strong><small>Faltan</small></div>
       </div>
 
+      <div class="modo-mensaje" role="group" aria-label="Tipo de mensaje">
+        <button class="btn modo-btn activo" data-modo="invitacion">Invitación</button>
+        <button class="btn modo-btn" data-modo="recordatorio">Recordatorio (solo sin confirmar)</button>
+      </div>
+
       <div class="filtros">
         <div class="lado-botones" role="group" aria-label="Filtrar por lado">
           <button class="btn lado-btn activo" data-lado="">Todos</button>
@@ -388,11 +396,12 @@
 
   /* ═══════════ CONFIGURACIÓN — edita estas tres líneas ═══════════ */
   var CONFIG = {
-    CLAVE:      "Boda_monse_noel",
-    URL_SCRIPT: "https://script.google.com/macros/s/AKfycbzRAg9V2cOmHZH3K-SjGumilEY7KFF9BANJ3SCWWigrKMshyhQ22T2NhoR8AlJ88QVM/exec",
-    TOKEN:      "Boda_monse_noel",   // el mismo TOKEN_ADMIN del Apps Script
-    BASE_URL:   "https://mexianoel-spec.github.io/invitacion/",
-    WHATSAPP_PLANTILLA: "{nombre}, hay personas que hacen que los momentos importantes sean aún más especiales, y ustedes son una de ellas. Nos casamos, y queremos que sean parte de este día. Aquí su invitación: {link}"
+    CLAVE:      "cambia-esta-clave",
+    URL_SCRIPT: "PEGA_AQUI_LA_URL_DEL_APPS_SCRIPT",
+    TOKEN:      "cambia-esta-palabra-secreta",   // el mismo TOKEN_ADMIN del Apps Script
+    BASE_URL:   "https://tuboda.github.io/invitacion/",
+    WHATSAPP_PLANTILLA: "{nombre}, hay personas que hacen que los momentos importantes sean aún más especiales, y ustedes son una de ellas ❤️ Nos casamos, y queremos que sean parte de este día. Aquí su invitación: {link}",
+    WHATSAPP_RECORDATORIO: "{nombre} ❤️ La boda se acerca y no hay nada que nos ilusione más que tenerlos con nosotros ese día. Si aún no han confirmado, nos encantaría saber si podremos contar con su presencia. Aquí su invitación: {link}"
   };
   /* ══════════════════════════════════════════════════════════════ */
 
@@ -660,6 +669,14 @@
   /* ---------- Envío de invitaciones por WhatsApp ---------- */
   var ENVIADOS = {};        // id -> {marca_envio, enviado_por}
   var ladoFiltro = "";      // "", "novio", "novia"
+  var modoMensaje = "invitacion";  // "invitacion" | "recordatorio"
+
+  // ¿esta familia ya respondió (sí o no)? Se lee de las confirmaciones (FILAS).
+  function haRespondido(id){
+    if (typeof FILAS === "undefined") return false;
+    var reg = FILAS.filter(function(x){ return x.id === id; })[0];
+    return !!(reg && (reg.respuesta === "si" || reg.respuesta === "no"));
+  }
 
   function cargarEnvios(){
     if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) { pintarEnvios(); return; }
@@ -707,6 +724,8 @@
     return Object.keys(LISTA).filter(function(id){
       var g = LISTA[id];
       if (ladoFiltro && g.grupo !== ladoFiltro) return false;
+      // en modo recordatorio: solo los que NO han respondido
+      if (modoMensaje === "recordatorio" && haRespondido(id)) return false;
       var estadoSel = $("#filtro-envio").value;
       if (estadoSel === "pendiente" && estaEnviado(id)) return false;
       if (estadoSel === "enviado" && !estaEnviado(id)) return false;
@@ -715,7 +734,10 @@
   }
 
   function mensajeEnvio(g, link){
-    return CONFIG.WHATSAPP_PLANTILLA.replace("{nombre}", g.nombre).replace("{link}", link);
+    var plantilla = (modoMensaje === "recordatorio")
+      ? (CONFIG.WHATSAPP_RECORDATORIO || CONFIG.WHATSAPP_PLANTILLA)
+      : CONFIG.WHATSAPP_PLANTILLA;
+    return plantilla.replace("{nombre}", g.nombre).replace("{link}", link);
   }
 
   function pintarEnvios(){
@@ -791,8 +813,17 @@
       pintarEnvios();
     });
   });
+  document.querySelectorAll(".modo-btn").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".modo-btn").forEach(function(o){ o.classList.toggle("activo", o === b); });
+      modoMensaje = b.dataset.modo;
+      // en recordatorio: refrescar confirmaciones para saber quién falta
+      if (modoMensaje === "recordatorio" && typeof traerConfirmaciones === "function") { try { traerConfirmaciones(); } catch(e){} }
+      pintarEnvios();
+    });
+  });
   $("#filtro-envio").addEventListener("change", pintarEnvios);
-  $("#btn-refrescar-envios").addEventListener("click", cargarEnvios);
+  $("#btn-refrescar-envios").addEventListener("click", function(){ cargarEnvios(); if (typeof traerConfirmaciones === "function") { try { traerConfirmaciones(); } catch(e){} } });
 
   // abrir siguiente tanda de 20 pendientes
   $("#btn-abrir-tanda").addEventListener("click", function(){
@@ -953,7 +984,7 @@
     salon.appendChild(bloque("arriba"));
     var esc = document.createElement("div");
     esc.className = "escenario horizontal";
-    esc.textContent = "Pista de Baile";
+    esc.textContent = "Escenario";
     salon.appendChild(esc);
     salon.appendChild(bloque("abajo"));
   }
