@@ -133,8 +133,8 @@
   },
   "fam-guerreromares": {
     "nombre": "Familia Guerrero Mares",
-    "adultos": 6,
-    "ninos": 0,
+    "adultos": 5,
+    "ninos": 1,
     "grupo": "novia"
   },
   "fam-mares": {
@@ -242,6 +242,12 @@
   "fam-fernandomadera": {
     "nombre": "Fernando Madera",
     "adultos": 1,
+    "ninos": 0,
+    "grupo": "novia"
+  },
+  "fam-tialety": {
+    "nombre": "Tia Lety",
+    "adultos": 2,
     "ninos": 0,
     "grupo": "novia"
   },
