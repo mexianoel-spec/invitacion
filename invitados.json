@@ -97,7 +97,7 @@
   },
   "fam-lopezmares": {
     "nombre": "Familia Lopez Mares",
-    "adultos": 2,
+    "adultos": 3,
     "ninos": 0,
     "grupo": "novia"
   },
@@ -128,13 +128,13 @@
   "fam-guerrero": {
     "nombre": "Familia Guerrero",
     "adultos": 5,
-    "ninos": 0,
+    "ninos": 1,
     "grupo": "novia"
   },
   "fam-guerreromares": {
     "nombre": "Familia Guerrero Mares",
-    "adultos": 5,
-    "ninos": 1,
+    "adultos": 6,
+    "ninos": 0,
     "grupo": "novia"
   },
   "fam-mares": {
