@@ -553,7 +553,7 @@
   },
   "fam-isaiashernandez": {
     "nombre": "Isaias Hernandez",
-    "adultos": 1,
+    "adultos": 2,
     "ninos": 0,
     "grupo": "novio"
   },
@@ -668,6 +668,24 @@
   "fam-selene": {
     "nombre": "Selene Ingrid & Ivan",
     "adultos": 4,
+    "ninos": 0,
+    "grupo": "novio"
+  },
+  "fam-kevindelatorre": {
+    "nombre": "kevin de la Torre",
+    "adultos": 1,
+    "ninos": 0,
+    "grupo": "novio"
+  },
+  "fam-abrahamflores": {
+    "nombre": "Abraham Flores",
+    "adultos": 2,
+    "ninos": 0,
+    "grupo": "novio"
+  },
+  "fam-alexiscazarez": {
+    "nombre": "Alexis Cazarez",
+    "adultos": 2,
     "ninos": 0,
     "grupo": "novio"
   }
