@@ -403,7 +403,7 @@
   },
   "fam-castillomexia": {
     "nombre": "Familia Castillo Mexia",
-    "adultos": 4,
+    "adultos": 5,
     "ninos": 0,
     "grupo": "novio"
   },
@@ -686,6 +686,12 @@
   "fam-alexiscazarez": {
     "nombre": "Alexis Cazarez",
     "adultos": 2,
+    "ninos": 0,
+    "grupo": "novio"
+  },
+  "fam-ivannuno": {
+    "nombre": "Ivan Nuño",
+    "adultos": 1,
     "ninos": 0,
     "grupo": "novio"
   }
