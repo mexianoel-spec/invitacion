@@ -694,5 +694,11 @@
     "adultos": 1,
     "ninos": 0,
     "grupo": "novio"
+  },
+  "fam-manuelydanissa": {
+    "nombre": "Manuel & Danissa",
+    "adultos": 2,
+    "ninos": 0,
+    "grupo": "novia"
   }
 }
