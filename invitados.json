@@ -667,7 +667,7 @@
   },
   "fam-selene": {
     "nombre": "Selene Ingrid & Ivan",
-    "adultos": 4,
+    "adultos": 3,
     "ninos": 0,
     "grupo": "novio"
   },
@@ -697,6 +697,12 @@
   },
   "fam-manuelydanissa": {
     "nombre": "Manuel & Danissa",
+    "adultos": 2,
+    "ninos": 0,
+    "grupo": "novia"
+  },
+  "fam-fabyyvalery": {
+    "nombre": "Faby & Valery",
     "adultos": 2,
     "ninos": 0,
     "grupo": "novia"
