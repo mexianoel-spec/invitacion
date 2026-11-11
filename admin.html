@@ -120,11 +120,24 @@
     background:rgba(183,155,98,.05);
   }
 
-  .mesa{
+  /* contenedor de cada mesa (define el área donde van mesa + sillas) */
+  .mesa-wrap{
     position:absolute;
     transform:translate(-50%,-50%);
+    z-index:2;
+  }
+  .mesa-wrap:hover{z-index:5}
+  .mesa-wrap.rect-h{width:9%;aspect-ratio:1.6/1}
+  .mesa-wrap.rect-v{width:5.5%;aspect-ratio:1/1.9}
+  .mesa-wrap.redonda{width:8.5%;aspect-ratio:1/1}
+  .mesa-wrap.dona{width:10.5%;aspect-ratio:1/1}
+  .mesa-wrap.larga-v{width:4%;aspect-ratio:1/5.4}
+  .mesa-wrap.principal{width:12%;aspect-ratio:2.4/1}
+
+  .mesa{
+    position:absolute; inset:0;
     border:1px solid var(--linea);
-    background:rgba(20,24,14,.92);
+    background:rgba(20,24,14,.95);
     color:var(--marfil);
     cursor:pointer;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -133,31 +146,49 @@
     font-family:var(--cuerpo);
     -webkit-tap-highlight-color:transparent;
     text-align:center;
-    padding:.2rem;
-    z-index:2;
+    padding:.15rem;
     line-height:1.05;
+    z-index:2;
   }
-  .mesa:hover{border-color:var(--laton);z-index:3}
+  .mesa:hover{border-color:var(--laton)}
   .mesa.destino{border-color:var(--laton);box-shadow:0 0 0 2px rgba(183,155,98,.45)}
-  .mesa .m-nom{font-size:.6rem;letter-spacing:.02em;font-weight:600}
-  .mesa .m-sub{font-size:.5rem;color:var(--tenue);text-transform:uppercase;letter-spacing:.08em}
-  .mesa .m-ocupado{font-size:.72rem;color:var(--laton);font-family:var(--display);margin-top:.1rem}
-  .mesa.llena{background:rgba(120,150,90,.22);border-color:var(--si)}
+  .mesa .m-nom{font-size:.58rem;letter-spacing:.02em;font-weight:600}
+  .mesa .m-sub{font-size:.48rem;color:var(--tenue);text-transform:uppercase;letter-spacing:.08em}
+  .mesa .m-ocupado{font-size:.68rem;color:var(--laton);font-family:var(--display);margin-top:.05rem}
+  .mesa.llena{background:rgba(120,150,90,.24);border-color:var(--si)}
   .mesa.llena .m-ocupado{color:var(--si)}
   .mesa.vacia .m-ocupado{color:var(--tenue)}
+  .mesa-wrap.redonda .mesa,.mesa-wrap.dona .mesa{border-radius:50%}
+  .mesa-wrap.rect-h .mesa,.mesa-wrap.rect-v .mesa,.mesa-wrap.larga-v .mesa{border-radius:3px}
+  .mesa-wrap.principal .mesa{border-radius:4px;border-color:var(--laton);background:rgba(183,155,98,.12)}
 
-  /* formas según el plano */
-  .mesa.rect-h{width:9%;height:9%;border-radius:3px}
-  .mesa.rect-v{width:6%;height:13%;border-radius:3px}
-  .mesa.redonda{width:9%;height:13%;border-radius:50%}
-  .mesa.dona{width:11%;height:16%;border-radius:50%}
-  .mesa.larga-v{width:4.5%;height:26%;border-radius:4px}
-  .mesa.principal{width:13%;height:7%;border-radius:4px;border-color:var(--laton);background:rgba(183,155,98,.1)}
+  /* sillas alrededor de la mesa */
+  .sillas{position:absolute;inset:0;z-index:1;pointer-events:none}
+  .silla{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    width:13px;height:13px;
+    border-radius:50%;
+    border:1px solid var(--linea);
+    background:rgba(0,0,0,.35);
+    color:var(--tenue);
+    font-size:6px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--cuerpo);
+  }
+  .silla.ocupada{
+    background:var(--laton);
+    border-color:var(--laton);
+    color:var(--olivo-hondo);
+    font-weight:700;
+  }
+
   @media(max-width:620px){
     .salon.plano{min-height:420px}
-    .mesa .m-nom{font-size:.5rem}
+    .mesa .m-nom{font-size:.46rem}
     .mesa .m-sub{display:none}
-    .mesa .m-ocupado{font-size:.6rem}
+    .mesa .m-ocupado{font-size:.55rem}
+    .silla{width:9px;height:9px;font-size:5px}
   }
 
   /* detalle de mesa */
@@ -405,10 +436,10 @@
 
   /* ═══════════ CONFIGURACIÓN — edita estas tres líneas ═══════════ */
   var CONFIG = {
-    CLAVE:      "Boda_monse_noel",
-    URL_SCRIPT: "https://script.google.com/macros/s/AKfycbzRAg9V2cOmHZH3K-SjGumilEY7KFF9BANJ3SCWWigrKMshyhQ22T2NhoR8AlJ88QVM/exec",
-    TOKEN:      "Boda_monse_noel",   // el mismo TOKEN_ADMIN del Apps Script
-    BASE_URL:   "https://mexianoel-spec.github.io/invitacion/",
+    CLAVE:      "cambia-esta-clave",
+    URL_SCRIPT: "PEGA_AQUI_LA_URL_DEL_APPS_SCRIPT",
+    TOKEN:      "cambia-esta-palabra-secreta",   // el mismo TOKEN_ADMIN del Apps Script
+    BASE_URL:   "https://tuboda.github.io/invitacion/",
     WHATSAPP_PLANTILLA: "{nombre}, hay personas que hacen que los momentos importantes sean aún más especiales, y ustedes son una de ellas. Nos casamos, y queremos que sean parte de este día. Aquí su invitación: {link}",
     WHATSAPP_RECORDATORIO: "{nombre}, la boda se acerca y no hay nada que nos ilusione más que tenerlos con nosotros ese día. Si aún no han confirmado, nos encantaría saber si podremos contar con su presencia. Aquí su invitación: {link}"
   };
@@ -973,13 +1004,32 @@
 
   function nodoMesa(m){
     var oc = ocupacionMesa(m.id);
+
+    // contenedor que agrupa la mesa + sus sillas
+    var wrap = document.createElement("div");
+    wrap.className = "mesa-wrap " + m.tipo;
+    wrap.style.left = m.x + "%";
+    wrap.style.top  = m.y + "%";
+
+    // las sillas alrededor (numeradas, se llenan según ocupación)
+    var sillas = document.createElement("div");
+    sillas.className = "sillas";
+    posicionesSillas(m).forEach(function(pos, i){
+      var s = document.createElement("span");
+      s.className = "silla" + (i < oc.total ? " ocupada" : "");
+      s.style.left = pos.x + "%";
+      s.style.top  = pos.y + "%";
+      s.textContent = (i + 1);
+      sillas.appendChild(s);
+    });
+    wrap.appendChild(sillas);
+
+    // la mesa (botón clickeable)
     var el = document.createElement("button");
     el.type = "button";
     el.className = "mesa " + m.tipo +
                    (oc.total >= m.cap ? " llena" : (oc.total === 0 ? " vacia" : ""));
     if (famSel) el.classList.add("destino");
-    el.style.left = m.x + "%";
-    el.style.top  = m.y + "%";
     el.innerHTML = "<span class='m-nom'>" + escapar(m.nombre) + "</span>" +
                    (m.sub ? "<span class='m-sub'>" + escapar(m.sub) + "</span>" : "") +
                    "<span class='m-ocupado'>" + oc.total + "/" + m.cap + "</span>";
@@ -992,7 +1042,54 @@
         abrirDetalle(m);
       }
     });
-    return el;
+    wrap.appendChild(el);
+    return wrap;
+  }
+
+  // calcula la posición (en % del contenedor de la mesa) de cada silla
+  // según la forma de la mesa. El contenedor va de 0 a 100 en x e y.
+  function posicionesSillas(m){
+    var n = m.cap, pos = [];
+    var cx = 50, cy = 50;
+    if (m.tipo === "redonda" || m.tipo === "dona") {
+      // alrededor de un círculo
+      var r = 54;
+      for (var i = 0; i < n; i++){
+        var ang = (i / n) * 2 * Math.PI - Math.PI / 2;
+        pos.push({ x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) });
+      }
+    } else if (m.tipo === "larga-v") {
+      // mesa larga vertical: sillas a izquierda y derecha en dos columnas
+      var porLado = Math.ceil(n / 2);
+      for (var j = 0; j < n; j++){
+        var lado = j < porLado ? 0 : 1;      // 0 izq, 1 der
+        var idx = lado === 0 ? j : j - porLado;
+        var total = lado === 0 ? porLado : (n - porLado);
+        var frac = (idx + 0.5) / total;
+        pos.push({ x: lado === 0 ? -12 : 112, y: 6 + frac * 88 });
+      }
+    } else if (m.tipo === "rect-v") {
+      // rectangular vertical: sillas a los lados
+      var porLadoV = Math.ceil(n / 2);
+      for (var k = 0; k < n; k++){
+        var ladoV = k < porLadoV ? 0 : 1;
+        var idxV = ladoV === 0 ? k : k - porLadoV;
+        var totalV = ladoV === 0 ? porLadoV : (n - porLadoV);
+        var fracV = (idxV + 0.5) / totalV;
+        pos.push({ x: ladoV === 0 ? -18 : 118, y: 8 + fracV * 84 });
+      }
+    } else {
+      // rectangular horizontal (y principal): sillas arriba y abajo
+      var porLadoH = Math.ceil(n / 2);
+      for (var q = 0; q < n; q++){
+        var ladoH = q < porLadoH ? 0 : 1;    // 0 arriba, 1 abajo
+        var idxH = ladoH === 0 ? q : q - porLadoH;
+        var totalH = ladoH === 0 ? porLadoH : (n - porLadoH);
+        var fracH = (idxH + 0.5) / totalH;
+        pos.push({ x: 6 + fracH * 88, y: ladoH === 0 ? -22 : 122 });
+      }
+    }
+    return pos;
   }
 
   function asignar(idFam, idMesa){
