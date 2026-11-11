@@ -194,7 +194,13 @@
   /* detalle de mesa */
   .mesa-detalle{position:fixed;inset:0;background:rgba(15,18,10,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:1rem}
   .mesa-detalle[hidden]{display:none}
-  .mesa-detalle-caja{background:var(--olivo-hondo);border:1px solid var(--laton);border-radius:8px;padding:1.6rem;max-width:420px;width:100%;position:relative}
+  .mesa-detalle-caja{background:var(--olivo-hondo);border:1px solid var(--laton);border-radius:8px;padding:1.6rem;max-width:460px;width:100%;position:relative;max-height:86vh;overflow-y:auto}
+  .detalle-sub{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--laton);margin:0 0 .6rem}
+  .sillas-grid{display:flex;flex-direction:column;gap:.4rem}
+  .silla-fila{display:flex;align-items:center;gap:.6rem}
+  .silla-num{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:1px solid var(--linea);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--laton)}
+  .silla-fila input{flex:1;background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.45rem .6rem;font-family:var(--cuerpo);font-size:.86rem;border-radius:3px}
+  .silla-fila input:focus{border-color:var(--laton);outline:none}
   .cerrar-detalle{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:var(--marfil);font-size:1.6rem;cursor:pointer;line-height:1}
   .mesa-detalle h3{font-family:var(--display);color:var(--marfil);margin:0 0 .3rem}
   .detalle-cupo{color:var(--laton);font-size:.8rem;margin-bottom:1rem}
@@ -911,6 +917,7 @@
 
   var MESAS = [];           // definición actual de mesas
   var ASIGNACION = {};      // id_familia -> id_mesa
+  var SILLAS = {};          // id_mesa -> { numero_silla: "nombre" }
   var famSel = null;        // familia seleccionada para asignar
 
   function cargarMesas(){
@@ -919,8 +926,9 @@
       var g = JSON.parse(localStorage.getItem("mesas_def") || "null");
       MESAS = (g && g.length) ? g : JSON.parse(JSON.stringify(MESAS_DEFAULT));
     } catch(e){ MESAS = JSON.parse(JSON.stringify(MESAS_DEFAULT)); }
-    // 2) asignaciones: localStorage primero (rápido), luego Sheet si hay red
+    // 2) asignaciones y nombres de sillas: localStorage primero, luego Sheet
     try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
+    try { SILLAS = JSON.parse(localStorage.getItem("mesas_sillas") || "{}"); } catch(e){ SILLAS = {}; }
     if (CONFIG.URL_SCRIPT.indexOf("http") === 0) {
       fetch(CONFIG.URL_SCRIPT + "?accion=listar_mesas&token=" + encodeURIComponent(CONFIG.TOKEN))
         .then(function(r){ return r.json(); })
@@ -928,8 +936,12 @@
           if (d.ok && d.asignacion) {
             ASIGNACION = d.asignacion;
             localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
-            pintarMapa(); pintarFamilias();
           }
+          if (d.ok && d.sillas) {
+            SILLAS = d.sillas;
+            localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+          }
+          pintarMapa(); pintarFamilias();
         }).catch(function(){});
     }
   }
@@ -1136,24 +1148,73 @@
     return m ? m.nombre : mid;
   }
 
+  var detalleMesaActual = null;
   function abrirDetalle(m){
+    detalleMesaActual = m;
     var oc = ocupacionMesa(m.id);
-    $("#detalle-titulo").textContent = m.nombre + " · " + (m.tipo === "medialuna" ? "Media luna" : m.tipo === "redonda" ? "Redonda" : "Rectangular");
+    var tipoTxt = (m.tipo === "dona") ? "Dona" : (m.tipo === "redonda") ? "Redonda" :
+                  (m.tipo === "larga-v") ? "Larga" : (m.tipo === "principal") ? "Novios" : "Cristal";
+    $("#detalle-titulo").textContent = m.nombre + " · " + tipoTxt;
     $("#detalle-cupo").textContent = oc.total + " de " + m.cap + " lugares ocupados";
     var cont = $("#detalle-familias");
     cont.innerHTML = "";
-    if (!oc.fams.length) cont.innerHTML = "<p class='nota'>Nadie asignado todavía.</p>";
+
+    // ── Familias asignadas a esta mesa ──
+    var tFam = document.createElement("p");
+    tFam.className = "detalle-sub";
+    tFam.textContent = "Familias en esta mesa";
+    cont.appendChild(tFam);
+    if (!oc.fams.length) {
+      var vacio = document.createElement("p");
+      vacio.className = "nota";
+      vacio.textContent = "Ninguna todavía. Selecciona una familia y toca la mesa.";
+      cont.appendChild(vacio);
+    }
     oc.fams.forEach(function(f){
       var row = document.createElement("div");
       row.className = "detalle-fam";
-      var n = (f.confirma != null) ? f.confirma : f.pases;
-      row.innerHTML = "<span>" + escapar(f.nombre) + " <small style='color:var(--tenue)'>(" + n + ")</small></span>";
+      row.innerHTML = "<span>" + escapar(f.nombre) + " <small style='color:var(--tenue)'>(" + f.asientos + ")</small></span>";
       var btn = document.createElement("button");
       btn.textContent = "Quitar";
       btn.addEventListener("click", function(){ quitar(f.id); abrirDetalle(m); pintarMapa(); pintarFamilias(); });
       row.appendChild(btn);
       cont.appendChild(row);
     });
+
+    // ── Nombres por silla ──
+    var tSil = document.createElement("p");
+    tSil.className = "detalle-sub";
+    tSil.style.marginTop = "1.2rem";
+    tSil.textContent = "Nombre en cada silla";
+    cont.appendChild(tSil);
+
+    var grid = document.createElement("div");
+    grid.className = "sillas-grid";
+    var nombresMesa = SILLAS[m.id] || {};
+    for (var i = 1; i <= m.cap; i++){
+      (function(num){
+        var fila = document.createElement("div");
+        fila.className = "silla-fila";
+        var lbl = document.createElement("span");
+        lbl.className = "silla-num";
+        lbl.textContent = num;
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.placeholder = "Silla " + num;
+        inp.value = nombresMesa[num] || "";
+        inp.addEventListener("input", function(){
+          if (!SILLAS[m.id]) SILLAS[m.id] = {};
+          if (inp.value.trim()) SILLAS[m.id][num] = inp.value.trim();
+          else delete SILLAS[m.id][num];
+          localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+        });
+        fila.appendChild(lbl);
+        fila.appendChild(inp);
+        grid.appendChild(fila);
+      })(i);
+    }
+    cont.appendChild(grid);
+
     $("#mesa-detalle").hidden = false;
   }
 
@@ -1162,15 +1223,16 @@
   if ($("#filtro-familias")) $("#filtro-familias").addEventListener("change", pintarFamilias);
   if ($("#buscar-familia")) $("#buscar-familia").addEventListener("input", pintarFamilias);
 
-  // guardar asignaciones en el Sheet
+  // guardar asignaciones y nombres de sillas en el Sheet
   if ($("#btn-guardar-mesas")) $("#btn-guardar-mesas").addEventListener("click", function(){
     $("#aviso-mesas").textContent = "Guardando…";
     localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
+    localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
     localStorage.setItem("mesas_def", JSON.stringify(MESAS));
     if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) { $("#aviso-mesas").textContent = "Guardado local (configura la URL para sincronizar)."; return; }
     fetch(CONFIG.URL_SCRIPT, {
       method: "POST",
-      body: JSON.stringify({ accion: "guardar_mesas", token: CONFIG.TOKEN, asignacion: ASIGNACION })
+      body: JSON.stringify({ accion: "guardar_mesas", token: CONFIG.TOKEN, asignacion: ASIGNACION, sillas: SILLAS })
     }).then(function(r){ return r.json(); })
       .then(function(d){ $("#aviso-mesas").textContent = d.ok ? "Guardado ✓" : ("Error: " + (d.error||"")); })
       .catch(function(){ $("#aviso-mesas").textContent = "Se guardó local, pero no se pudo sincronizar (revisa la conexión)."; });
