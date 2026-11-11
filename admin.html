@@ -89,67 +89,76 @@
       repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,transparent 1px 40px),
       repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 40px),
       rgba(0,0,0,.15);
-    padding:1.4rem;
     min-height:520px;
   }
-  /* layout horizontal: bloque arriba, escenario, bloque abajo */
-  .salon.horizontal{
-    display:flex;
-    flex-direction:column;
-    gap:1rem;
-    align-items:stretch;
+  /* plano con posición absoluta (coordenadas del layout oficial) */
+  .salon.plano{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/11;
+    min-height:560px;
+    overflow:hidden;
   }
-  .bloque{display:flex;flex-direction:column;gap:.7rem;align-items:center}
-
-  .escenario{
-    align-self:center;
-    text-align:center;
-    padding:.9rem 2.5rem;
-    border:1px dashed var(--laton);
-    border-radius:6px;
-    color:var(--laton);
-    font-size:.7rem;
-    letter-spacing:.3em;
-    text-transform:uppercase;
-    background:rgba(183,155,98,.06);
+  .fijo{
+    position:absolute;
     display:flex;align-items:center;justify-content:center;
+    color:var(--tenue);
+    font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;
+    pointer-events:none;
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--linea);
   }
-  .escenario.horizontal{ width:min(70%,440px); }
-
-  .fila-mesas{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;align-items:flex-end}
-  .fila-mesas.centro-fila{align-items:center}
-  .fila-mesas.abraza-fila{margin:0}
+  .escenario-plano{
+    left:34%; top:3%; width:32%; height:11%;
+    border-style:dashed;border-color:var(--laton);color:var(--laton);
+    border-radius:4px;
+  }
+  .pista-plano{
+    left:40%; top:36%; width:20%; height:34%;
+    border-radius:50%;
+    color:var(--laton);
+    background:rgba(183,155,98,.05);
+  }
 
   .mesa{
-    position:relative;
+    position:absolute;
+    transform:translate(-50%,-50%);
     border:1px solid var(--linea);
-    background:rgba(0,0,0,.2);
+    background:rgba(20,24,14,.92);
     color:var(--marfil);
     cursor:pointer;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:.15rem;
-    transition:border-color .2s,background .2s,transform .15s;
+    gap:.05rem;
+    transition:border-color .2s,background .2s,box-shadow .15s;
     font-family:var(--cuerpo);
     -webkit-tap-highlight-color:transparent;
     text-align:center;
-    padding:.3rem;
+    padding:.2rem;
+    z-index:2;
+    line-height:1.05;
   }
-  .mesa:hover{border-color:var(--laton);transform:translateY(-1px)}
-  .mesa.destino{border-color:var(--laton);box-shadow:0 0 0 2px rgba(183,155,98,.35)}
-  .mesa .m-nom{font-size:.62rem;letter-spacing:.06em}
-  .mesa .m-ocupado{font-size:.7rem;color:var(--laton);font-family:var(--display)}
-  .mesa.llena{background:rgba(120,150,90,.16);border-color:var(--si)}
+  .mesa:hover{border-color:var(--laton);z-index:3}
+  .mesa.destino{border-color:var(--laton);box-shadow:0 0 0 2px rgba(183,155,98,.45)}
+  .mesa .m-nom{font-size:.6rem;letter-spacing:.02em;font-weight:600}
+  .mesa .m-sub{font-size:.5rem;color:var(--tenue);text-transform:uppercase;letter-spacing:.08em}
+  .mesa .m-ocupado{font-size:.72rem;color:var(--laton);font-family:var(--display);margin-top:.1rem}
+  .mesa.llena{background:rgba(120,150,90,.22);border-color:var(--si)}
+  .mesa.llena .m-ocupado{color:var(--si)}
   .mesa.vacia .m-ocupado{color:var(--tenue)}
 
-  /* formas */
-  .mesa.rect{width:86px;height:54px;border-radius:3px}
-  .mesa.rect.v{width:54px;height:86px}
-  .mesa.redonda{width:96px;height:96px;border-radius:50%}
-  /* media luna de arriba: curva hacia abajo (abraza el escenario por arriba) */
-  .mesa.medialuna{width:150px;height:64px}
-  .bloque.arriba .mesa.medialuna{border-radius:8px 8px 80px 80px}
-  /* media luna de abajo: curva hacia arriba */
-  .bloque.abajo .mesa.medialuna{border-radius:80px 80px 8px 8px}
+  /* formas según el plano */
+  .mesa.rect-h{width:9%;height:9%;border-radius:3px}
+  .mesa.rect-v{width:6%;height:13%;border-radius:3px}
+  .mesa.redonda{width:9%;height:13%;border-radius:50%}
+  .mesa.dona{width:11%;height:16%;border-radius:50%}
+  .mesa.larga-v{width:4.5%;height:26%;border-radius:4px}
+  .mesa.principal{width:13%;height:7%;border-radius:4px;border-color:var(--laton);background:rgba(183,155,98,.1)}
+  @media(max-width:620px){
+    .salon.plano{min-height:420px}
+    .mesa .m-nom{font-size:.5rem}
+    .mesa .m-sub{display:none}
+    .mesa .m-ocupado{font-size:.6rem}
+  }
 
   /* detalle de mesa */
   .mesa-detalle{position:fixed;inset:0;background:rgba(15,18,10,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:1rem}
@@ -843,43 +852,31 @@
   });
 
   /* ---------- Mapa de mesas ---------- */
-  // Layout según el boceto: escenario HORIZONTAL al centro. Dos bloques,
-  // arriba y abajo del escenario. Cada bloque: media luna abrazando el
-  // escenario, una redonda al centro, y rectangulares alrededor (unas
-  // horizontales, otras verticales). 20 mesas: 2 medias lunas, 2 redondas,
-  // 16 rectangulares (8 por bloque). Editable.
-  var MESAS_DEFAULT = (function(){
-    var arr = [];
-    var n = 1;
-    function add(tipo, cap, bloque, zona, forma){
-      arr.push({ id: "m" + n, nombre: "Mesa " + n, tipo: tipo, cap: cap, bloque: bloque, zona: zona, forma: forma || "" });
-      n++;
-    }
-    // ── BLOQUE ARRIBA ──  (de arriba hacia el escenario)
-    add("rect", 8, "arriba", "fila-lejos", "h");   // 1
-    add("rect", 8, "arriba", "fila-lejos", "h");   // 2
-    add("rect", 8, "arriba", "fila-lejos", "h");   // 3
-    add("rect", 8, "arriba", "lados-redonda", "v"); // 4  (izq de la redonda)
-    add("redonda", 16, "arriba", "centro", "");     // 5  redonda centro
-    add("rect", 8, "arriba", "lados-redonda", "v"); // 6  (der de la redonda)
-    add("rect", 8, "arriba", "cerca", "h");         // 7
-    add("rect", 8, "arriba", "cerca", "h");         // 8
-    add("medialuna", 12, "arriba", "abraza", "");   // 9  media luna arriba del escenario
-    // ── BLOQUE ABAJO ──  (del escenario hacia abajo, espejo)
-    add("medialuna", 12, "abajo", "abraza", "");    // 10 media luna abajo del escenario
-    add("rect", 8, "abajo", "cerca", "h");          // 11
-    add("rect", 8, "abajo", "cerca", "h");          // 12
-    add("rect", 8, "abajo", "lados-redonda", "v");  // 13
-    add("redonda", 16, "abajo", "centro", "");      // 14 redonda centro
-    add("rect", 8, "abajo", "lados-redonda", "v");  // 15
-    add("rect", 8, "abajo", "fila-lejos", "h");     // 16
-    add("rect", 8, "abajo", "fila-lejos", "h");     // 17
-    add("rect", 8, "abajo", "fila-lejos", "h");     // 18
-    // dos rectangulares extra para completar 20 (una a cada bloque, en las orillas)
-    add("rect", 8, "arriba", "orilla", "v");        // 19
-    add("rect", 8, "abajo", "orilla", "v");         // 20
-    return arr;
-  })();
+  // Layout OFICIAL (plano del salón). Posiciones en % del salón (x,y = centro
+  // de la mesa). Escenario arriba-centro, pista al centro, mesa principal abajo.
+  // 14 mesas numeradas + mesa principal. "sillas" = asientos (los niños no
+  // cuentan; se calcula aparte). Editable después con "Editar mesas".
+  var MESAS_DEFAULT = [
+    // ── Columna IZQUIERDA (de arriba hacia abajo) ──
+    { id: "m1",  nombre: "Mesa #1",  sub: "Cristal",  tipo: "rect-h",   cap: 10, x: 9,  y: 33 },
+    { id: "m2",  nombre: "Mesa #2",  sub: "Cristal",  tipo: "rect-v",   cap: 12, x: 7,  y: 50 },
+    { id: "m3",  nombre: "Mesa #3",  sub: "Cristal",  tipo: "rect-h",   cap: 12, x: 9,  y: 67 },
+    { id: "m4",  nombre: "Mesa #4",  sub: "Cristal",  tipo: "redonda",  cap: 11, x: 22, y: 31 },
+    { id: "m5",  nombre: "Mesa #5",  sub: "Dona",     tipo: "dona",     cap: 20, x: 20, y: 51 },
+    { id: "m6",  nombre: "Mesa #6",  sub: "Cristal",  tipo: "redonda",  cap: 12, x: 22, y: 69 },
+    // ── Centro: dos mesas largas pegadas a la pista ──
+    { id: "m7",  nombre: "Mesa #7",  sub: "Larga",    tipo: "larga-v",  cap: 20, x: 35, y: 50 },
+    { id: "m8",  nombre: "Mesa #8",  sub: "Larga",    tipo: "larga-v",  cap: 20, x: 65, y: 50 },
+    // ── Columna DERECHA (de arriba hacia abajo) ──
+    { id: "m9",  nombre: "Mesa #9",  sub: "Cristal",  tipo: "redonda",  cap: 12, x: 78, y: 31 },
+    { id: "m10", nombre: "Mesa #10", sub: "Dona",     tipo: "dona",     cap: 20, x: 80, y: 51 },
+    { id: "m11", nombre: "Mesa #11", sub: "Cristal",  tipo: "redonda",  cap: 12, x: 78, y: 69 },
+    { id: "m12", nombre: "Mesa #12", sub: "Cristal",  tipo: "rect-h",   cap: 12, x: 91, y: 33 },
+    { id: "m13", nombre: "Mesa #13", sub: "Cristal",  tipo: "rect-v",   cap: 10, x: 93, y: 50 },
+    { id: "m14", nombre: "Mesa #14", sub: "Cristal",  tipo: "rect-h",   cap: 12, x: 91, y: 67 },
+    // ── Mesa principal (novios) ──
+    { id: "principal", nombre: "Mesa principal", sub: "Novios", tipo: "principal", cap: 2, x: 50, y: 92 }
+  ];
 
   var MESAS = [];           // definición actual de mesas
   var ASIGNACION = {};      // id_familia -> id_mesa
@@ -914,22 +911,42 @@
     }
     return Object.keys(fuente).map(function(id){
       var g = fuente[id];
-      var conf = null;
+      var respuesta = null;
+      // ── ASIENTOS = SOLO ADULTOS (los niños no se sientan en el salón) ──
+      // confirmados: adultos_confirma; sin confirmar: adultos reservados (Excel col C)
+      var asientos = Number(g.adultos) || 0;   // base: adultos reservados
+      var confirmo = false;
       if (typeof FILAS !== "undefined") {
         var reg = FILAS.filter(function(x){ return x.id === id; })[0];
-        if (reg && reg.respuesta === "si") conf = (reg.total_confirma != null ? reg.total_confirma : reg.pases);
-        if (reg && reg.respuesta === "no") conf = 0;
+        if (reg) {
+          respuesta = reg.respuesta;
+          if (reg.respuesta === "si") {
+            confirmo = true;
+            asientos = (reg.adultos_confirma != null && reg.adultos_confirma !== "")
+              ? Number(reg.adultos_confirma)
+              : (Number(g.adultos) || 0);
+          } else if (reg.respuesta === "no") {
+            asientos = 0;
+          }
+        }
       }
-      return { id: id, nombre: g.nombre, pases: g.pases || 0, confirma: conf, grupo: g.grupo || "", mesa: ASIGNACION[id] || null };
+      return {
+        id: id,
+        nombre: g.nombre,
+        adultos: Number(g.adultos) || 0,
+        ninos: Number(g.ninos) || 0,
+        asientos: asientos,          // lo que ocupa en el salón (solo adultos)
+        confirmo: confirmo,
+        respuesta: respuesta,
+        grupo: g.grupo || "",
+        mesa: ASIGNACION[id] || null
+      };
     });
   }
 
   function ocupacionMesa(mid){
     var fams = familiasArr().filter(function(f){ return f.mesa === mid; });
-    var total = fams.reduce(function(a,f){
-      var n = (f.confirma != null) ? f.confirma : f.pases;
-      return a + (n || 0);
-    }, 0);
+    var total = fams.reduce(function(a,f){ return a + (f.asientos || 0); }, 0);
     return { fams: fams, total: total };
   }
 
@@ -937,66 +954,34 @@
     var salon = $("#salon");
     if (!salon) return;
     salon.innerHTML = "";
-    salon.classList.add("horizontal");
+    salon.className = "salon plano";
 
-    function bloque(cual){
-      var b = document.createElement("div");
-      b.className = "bloque " + cual;
-      var mesasB = MESAS.filter(function(m){ return m.bloque === cual; });
-
-      function porZona(z){ return mesasB.filter(function(m){ return m.zona === z; }); }
-      function filaDe(mesas, clase){
-        if (!mesas.length) return;
-        var fila = document.createElement("div");
-        fila.className = "fila-mesas " + (clase || "");
-        mesas.forEach(function(m){ fila.appendChild(nodoMesa(m)); });
-        b.appendChild(fila);
-      }
-
-      if (cual === "arriba") {
-        // orden de arriba hacia el escenario
-        filaDe(porZona("fila-lejos"), "");
-        // redonda al centro, con verticales a los lados y la orilla
-        var medio = porZona("lados-redonda").concat(porZona("centro")).concat(porZona("orilla"));
-        // reordenar: v, redonda, v, orilla
-        var izq = porZona("lados-redonda")[0];
-        var red = porZona("centro")[0];
-        var der = porZona("lados-redonda")[1];
-        var ori = porZona("orilla")[0];
-        var fmedio = [izq, red, der, ori].filter(Boolean);
-        filaDe(fmedio, "centro-fila");
-        filaDe(porZona("cerca"), "");
-        filaDe(porZona("abraza"), "abraza-fila");
-      } else {
-        // bloque abajo: espejo (del escenario hacia abajo)
-        filaDe(porZona("abraza"), "abraza-fila");
-        filaDe(porZona("cerca"), "");
-        var izq2 = porZona("lados-redonda")[0];
-        var red2 = porZona("centro")[0];
-        var der2 = porZona("lados-redonda")[1];
-        var ori2 = porZona("orilla")[0];
-        filaDe([izq2, red2, der2, ori2].filter(Boolean), "centro-fila");
-        filaDe(porZona("fila-lejos"), "");
-      }
-      return b;
-    }
-
-    salon.appendChild(bloque("arriba"));
+    // elementos fijos del salón (escenario, pista) — decorativos
     var esc = document.createElement("div");
-    esc.className = "escenario horizontal";
-    esc.textContent = "Escenario";
+    esc.className = "fijo escenario-plano";
+    esc.innerHTML = "<span>Escenario</span>";
     salon.appendChild(esc);
-    salon.appendChild(bloque("abajo"));
+
+    var pista = document.createElement("div");
+    pista.className = "fijo pista-plano";
+    pista.innerHTML = "<span>Pista</span>";
+    salon.appendChild(pista);
+
+    // las mesas (posición absoluta por x,y)
+    MESAS.forEach(function(m){ salon.appendChild(nodoMesa(m)); });
   }
 
   function nodoMesa(m){
     var oc = ocupacionMesa(m.id);
     var el = document.createElement("button");
     el.type = "button";
-    el.className = "mesa " + m.tipo + (m.forma ? " " + m.forma : "") +
+    el.className = "mesa " + m.tipo +
                    (oc.total >= m.cap ? " llena" : (oc.total === 0 ? " vacia" : ""));
     if (famSel) el.classList.add("destino");
+    el.style.left = m.x + "%";
+    el.style.top  = m.y + "%";
     el.innerHTML = "<span class='m-nom'>" + escapar(m.nombre) + "</span>" +
+                   (m.sub ? "<span class='m-sub'>" + escapar(m.sub) + "</span>" : "") +
                    "<span class='m-ocupado'>" + oc.total + "/" + m.cap + "</span>";
     el.addEventListener("click", function(){
       if (famSel) {
