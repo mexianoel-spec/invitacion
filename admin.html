@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -925,29 +924,46 @@
   var SILLAS = {};          // id_mesa -> { numero_silla: "nombre" }
   var famSel = null;        // familia seleccionada para asignar
 
+  // Versión del acomodo. Al subir una nueva, se aplica el plano y los nombres
+  // del lado novia aunque el navegador tenga datos viejos de prueba.
+  var MESAS_VERSION = "novia-2026-11-1";
+
   function cargarMesas(){
-    // 1) definición de mesas: localStorage o default
-    try {
-      var g = JSON.parse(localStorage.getItem("mesas_def") || "null");
-      MESAS = (g && g.length) ? g : JSON.parse(JSON.stringify(MESAS_DEFAULT));
-    } catch(e){ MESAS = JSON.parse(JSON.stringify(MESAS_DEFAULT)); }
-    // 2) asignaciones y nombres de sillas: localStorage primero, luego Sheet
-    try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
-    try { SILLAS = JSON.parse(localStorage.getItem("mesas_sillas") || "{}"); } catch(e){ SILLAS = {}; }
-    // precarga de nombres (lado novia) la primera vez que no hay nada guardado
-    if (!Object.keys(SILLAS).length && typeof SILLAS_PRECARGA !== "undefined") {
+    var versionGuardada = localStorage.getItem("mesas_version");
+    var esNueva = versionGuardada !== MESAS_VERSION;
+
+    if (esNueva) {
+      // reset forzado: plano oficial + nombres del lado novia
+      MESAS  = JSON.parse(JSON.stringify(MESAS_DEFAULT));
       SILLAS = JSON.parse(JSON.stringify(SILLAS_PRECARGA));
+      try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
+      localStorage.setItem("mesas_def", JSON.stringify(MESAS));
       localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+      localStorage.setItem("mesas_version", MESAS_VERSION);
+    } else {
+      try {
+        var g = JSON.parse(localStorage.getItem("mesas_def") || "null");
+        MESAS = (g && g.length) ? g : JSON.parse(JSON.stringify(MESAS_DEFAULT));
+      } catch(e){ MESAS = JSON.parse(JSON.stringify(MESAS_DEFAULT)); }
+      try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
+      try { SILLAS = JSON.parse(localStorage.getItem("mesas_sillas") || "{}"); } catch(e){ SILLAS = {}; }
+      if (!Object.keys(SILLAS).length && typeof SILLAS_PRECARGA !== "undefined") {
+        SILLAS = JSON.parse(JSON.stringify(SILLAS_PRECARGA));
+        localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+      }
     }
     if (CONFIG.URL_SCRIPT.indexOf("http") === 0) {
       fetch(CONFIG.URL_SCRIPT + "?accion=listar_mesas&token=" + encodeURIComponent(CONFIG.TOKEN))
         .then(function(r){ return r.json(); })
         .then(function(d){
+          // en una versión nueva NO sobrescribimos con datos viejos del Sheet;
+          // se usa el acomodo nuevo y al dar "Guardar cambios" se sube al Sheet.
+          if (esNueva) { pintarMapa(); pintarFamilias(); return; }
           if (d.ok && d.asignacion) {
             ASIGNACION = d.asignacion;
             localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
           }
-          if (d.ok && d.sillas) {
+          if (d.ok && d.sillas && Object.keys(d.sillas).length) {
             SILLAS = d.sillas;
             localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
           }
