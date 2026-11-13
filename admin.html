@@ -65,7 +65,13 @@
   /* ── Mapa de mesas ── */
   .mesas-layout{display:grid;grid-template-columns:300px 1fr;gap:1.4rem;align-items:start}
   @media(max-width:860px){.mesas-layout{grid-template-columns:1fr}}
-  .panel-familias{border:1px solid var(--linea);padding:1rem;border-radius:4px;background:rgba(0,0,0,.12)}
+  .resumen-mesas{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.3rem}
+  @media(max-width:680px){.resumen-mesas{grid-template-columns:repeat(2,1fr)}}
+  .r-metrica{border:1px solid var(--linea);border-radius:6px;padding:1rem;text-align:center;background:rgba(0,0,0,.12)}
+  .r-metrica strong{display:block;font-family:var(--display);font-size:2rem;color:var(--marfil);line-height:1}
+  .r-metrica small{display:block;margin-top:.4rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue)}
+  .r-metrica.cap strong{color:var(--laton)}
+  .panel-familias{border:1px solid var(--linea);padding:1rem;border-radius:6px;background:rgba(0,0,0,.12)}
   .panel-titulo{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.7rem}
   .panel-titulo span{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--laton)}
   .panel-titulo select,#buscar-familia{background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.4rem .5rem;font-family:var(--cuerpo);font-size:.8rem;border-radius:3px}
@@ -201,12 +207,17 @@
   .silla-num{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:1px solid var(--linea);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--laton)}
   .silla-fila input{flex:1;background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.45rem .6rem;font-family:var(--cuerpo);font-size:.86rem;border-radius:3px}
   .silla-fila input:focus{border-color:var(--laton);outline:none}
+  .silla-fila.resaltada-fila input{border-color:#e8463a;box-shadow:0 0 0 2px rgba(232,70,58,.3)}
+  .silla-fila.resaltada-fila .silla-num{border-color:#e8463a;color:#e8463a}
   .btn-capitan{flex-shrink:0;width:30px;height:30px;border-radius:6px;border:1px solid var(--linea);background:transparent;color:var(--tenue);font-size:1rem;cursor:pointer;transition:all .2s;line-height:1}
   .btn-capitan:hover{border-color:var(--laton);color:var(--laton)}
   .btn-capitan.activo{background:var(--laton);border-color:var(--laton);color:var(--olivo-hondo)}
   /* silla capitán en el mapa */
   .silla.capitan{background:#d9a94e;border-color:#fff;box-shadow:0 0 0 2px rgba(217,169,78,.5)}
   .silla.capitan::after{content:"♛";position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:8px;color:#d9a94e}
+  .silla.resaltada{background:#e8463a;border-color:#fff;box-shadow:0 0 0 3px rgba(232,70,58,.55);z-index:8;transform:translate(-50%,-50%) scale(1.4)}
+  .fam-chip.es-cap{border-color:var(--laton)}
+  .chip-cap{color:var(--laton)}
   .cerrar-detalle{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:var(--marfil);font-size:1.6rem;cursor:pointer;line-height:1}
   .mesa-detalle h3{font-family:var(--display);color:var(--marfil);margin:0 0 .3rem}
   .detalle-cupo{color:var(--laton);font-size:.8rem;margin-bottom:1rem}
@@ -397,32 +408,36 @@
 
     <!-- ── MAPA DE MESAS ── -->
     <section id="vista-mesas" hidden>
-      <div class="zona">
-        <p>Asigna cada familia a su mesa. Toca una familia de la lista y luego la mesa en el mapa. Todo se guarda en tu Google Sheet para el día del evento. Necesitas haber cargado tu Excel (en "Lista e invitaciones") y las confirmaciones se leen solas.</p>
+      <!-- resumen arriba -->
+      <div class="resumen-mesas">
+        <div class="r-metrica"><strong id="r-sentados">0</strong><small>Personas sentadas</small></div>
+        <div class="r-metrica"><strong id="r-lugares">0</strong><small>Lugares totales</small></div>
+        <div class="r-metrica"><strong id="r-libres">0</strong><small>Lugares libres</small></div>
+        <div class="r-metrica cap"><strong id="r-capitanes">0</strong><small>Capitanes</small></div>
       </div>
 
       <div class="mesas-layout">
-        <!-- panel izquierdo: familias por asignar -->
+        <!-- panel izquierdo: todas las personas -->
         <div class="panel-familias">
           <div class="panel-titulo">
-            <span>Familias</span>
+            <span>Invitados</span>
             <select id="filtro-familias">
-              <option value="sin">Sin mesa</option>
-              <option value="si">Solo confirmadas</option>
-              <option value="todas">Todas</option>
+              <option value="todas">Todos</option>
+              <option value="capitan">Solo capitanes</option>
+              <option value="novio">Lado novio</option>
+              <option value="novia">Lado novia</option>
             </select>
           </div>
-          <input type="text" id="buscar-familia" placeholder="Buscar familia…">
+          <input type="text" id="buscar-familia" placeholder="Buscar persona…">
           <div id="lista-familias" class="lista-familias"></div>
         </div>
 
         <!-- panel derecho: mapa del salón -->
         <div class="panel-mapa">
           <div class="mapa-acciones">
-            <button class="btn solido mini" id="btn-guardar-mesas">Guardar cambios</button>
+            <button class="btn solido mini" id="btn-guardar-mesas">Guardar en Google Sheet</button>
             <button class="btn mini" id="btn-descargar-excel">Descargar Excel</button>
             <button class="btn mini" id="btn-descargar-checkin">Descargar para check-in</button>
-            <button class="btn mini" id="btn-editar-mesas">Editar mesas</button>
             <span class="nota" id="aviso-mesas"></span>
           </div>
           <div class="salon" id="salon"></div>
@@ -924,7 +939,8 @@
 
   // Nombres precargados (lado novia) — se aplican la 1ª vez si no hay nada guardado.
   // Puedes editarlos luego en el detalle de cada mesa.
-  var SILLAS_PRECARGA = {"m8":{"1":"SOL ALVARADO","2":"JUAN JOSE MARES","3":"CONSUELO NAVARRO","4":"LAURA ALVARADO","5":"MIGUEL GARCIA","6":"LIZETTE DIAZ","7":"ELIZABETH GARCIA","8":"ARTURO ARANDA","9":"SEBASTIAN GARCIA","10":"LUIS ALVARADO","11":"BRENDA ALVARADO","12":"LEXY ALVARADO","13":"ANTONIA CARDENAS","14":"SAUL MARES","15":"MARIA MARES","16":"ESPERANZA MARES","17":"HUMBERTO RUVALCABA","18":"DIANA RUVALCABA","19":"MOISES SANCHEZ","20":"DYLAN RUVALCABA","21":"CARLOS RUVALCABA","22":"AHTZIRI CASAS","23":"NOEMI MAZAYANI"},"m9":{"1":"LAURA RUVALCABA","2":"GUADALUPE RUVALCABA","3":"LORENA RUVALCABA","4":"OSCAR MERCADO","5":"YUVIANA MERCADO","6":"ALEXANDER MERCADO","7":"MAYRA RUBALCABA","8":"JOSE EDUARDO","9":"VANIA","10":"ADRIANA TORRES","11":"PEDRO","12":"SANTIAGO"},"m10":{"1":"RICARDO RUVALCABA","2":"FERNANDO RUVALCABA","3":"ATZIRI DIAZ","4":"JUAN LUIS MARES","5":"JOEL GODOY","6":"TOÑITO MARES","7":"FANNY","8":"BRAYAN","9":"ROSA ANGELICA","10":"MICHEL AYON","11":"IVAN GUERRERO","12":"YOVANI GUERRERO","13":"EDGAR","14":"MONTSE","15":"ATZIRI RUVALCABA","16":"YADIRA LOPEZ","17":"NOVIO DE YADI","18":"YOHANA LOPEZ","19":"ALEJANDRA","20":"MARLENE"},"m11":{"1":"ANTONIA MARES","2":"ANTONIO GODOY","3":"JANETH GODOY","4":"LUPITA GUERRERO","5":"VICTOR","6":"CARLITOS","7":"ELVIA MARES","8":"RAFAEL GUERRERO","9":"ESMERALDA GUERRERO","10":"ALEJANDRA GUERRERO","11":"ANTONIO MARES","12":"AURELIO GUERRERO"},"m12":{"1":"KARLA OSUNA","2":"LAURA RODRIGUEZ","3":"JUAN CARLOS OSUNA","4":"FERNANDO MADERA","5":"MOISES RAMIREZ","6":"CITLALLI CHOLICO","7":"ANDREA CHAVARRIA","8":"DAVID","9":"ARLETTE","10":"MAMA DE ANDREA","11":"FABIOLA VALENCIA","12":"VALERY VIRGEN"},"m13":{"1":"CIELO SANCHEZ","2":"CITLALLI ESCOBEDO","3":"LIVIER SANCHEZ","4":"JORGE","5":"JENIFER ORTIZ","6":"VANESSA CORONA","7":"OMAR","8":"MANUEL","9":"DANISSA"},"m14":{"1":"PRISCILA LOZA","2":"NAYELY CHAVEZ","3":"ENRIQUE","4":"ANDREA","5":"URIEL","6":"ROXANA EVANGELISTA","7":"OSWALDO VIRGEN","8":"ANA","9":"ENRIQUE","10":"ESTHEFANIA RODRIGUEZ","11":"SERGIO CHAVEZ","12":"ARANTXA CISNEROS"}};
+  var SILLAS_PRECARGA = {"m1": {"1": "TERESA LUNA", "2": "ABIGAIL MALDONADO", "3": "NOVIO ABIGAIL", "4": "KEVIN DE LA TORRE", "5": "GERARDO ALDRETE", "6": "ESPOSA GERARDO", "7": "LULA", "8": "HECTOR ARROYO", "9": "NOVIA DE HECTOR", "10": "JOSE CABALLERO"}, "m2": {"1": "RAUL CABRERA", "2": "TAMARA", "3": "HUGO GUERRERO", "4": "JOSE SEVILLA", "5": "LUDWIG AGUILAR", "6": "FERNANDO TORRES", "7": "OMAR LEPE", "8": "ESTANISLAO", "9": "ABRAHAM FLORES", "10": "ESPOSA ABRAHAM", "11": "ISELA VARGAS", "12": "NOVIO ISELA"}, "m3": {"1": "DANIEL MEXIA", "2": "ANA PAU", "3": "CARLOS MEXIA", "4": "LARISSA", "5": "ALONSO MEXIA", "6": "DIANA CAÑEDO", "7": "ERICK SAEZ", "8": "DAFNE", "9": "FARID ALVAREZ", "10": "ALEJANDRO BLANCO", "11": "INGRID", "12": "NOVIO INGRID"}, "m4": {"1": "ROBERTO CRUZ", "2": "NOVIA DE ROBERTO", "3": "JAVIER LIMON", "4": "ISAIAS HERNANDEZ", "5": "NOVIA DE ISAIAS", "6": "OSCAR ROMERO", "7": "NOVIA DE OSCAR", "8": "OMAR GONZALEZ", "9": "JAVIER IVAN NUÑO", "10": "HARRY"}, "m5": {"1": "IVAN FIGUEROA", "2": "VERONICA GASPAR", "3": "MAURICIO FIGUEROA", "4": "SANTIAGO FIGUEROA", "5": "KARINA FIGUEROA", "6": "RAMON ARAUJO", "7": "HANIA ARAUJO", "8": "EDGAR FIGUEROA", "9": "YARED LOMELI", "10": "VALERIA FIGUEROA", "11": "VICTORIA FIGUEROA", "12": "VALENTINA FIGUEROA", "13": "JESUS AGUAYO", "14": "ROSARIO LOMELI", "15": "JIMENA AGUAYO", "16": "RENATA AGUAYO", "17": "MARTHA LOMELI", "18": "RICARDO LOMELI", "19": "CELENE FIGUEROA"}, "m6": {"1": "JORGE CASTILLO", "2": "VERENICE MEXIA", "3": "MIGUEL ALFONSO CASTILLO", "4": "EDITH MAGAÑA", "5": "EVELIN CASTILLO", "6": "LEONARDO MORALES", "7": "CAROLINA MORALES", "8": "JORGE CASTILLO", "9": "NOVIA JORGIN", "10": "ALAN CASTILLO", "11": "JULIO ALVARADO", "12": "ASHLEY"}, "m7": {"1": "STHEPANY", "2": "FAUSTO", "3": "MARIO", "4": "MELISSA", "5": "CAROLINA", "6": "CATALINA FIGUEROA", "7": "MIGUEL MEXIA", "8": "GUADALUPE SANCHEZ", "9": "OSCAR ESTRADA", "10": "RODOLFO FIGUEROA", "11": "CONCHITA", "12": "ROGEIRO", "13": "GUADALUPE", "14": "DARMA FIGUEROA", "15": "ALVARO FIGUEROA", "16": "ADRIANA SALCEDO", "17": "ALFREDO FIGUEROA", "18": "MANUEL SALCEDO", "19": "DANIELA SALCEDO", "20": "ANDRES SALCEDO"}, "m8": {"1": "SOL ALVARADO", "2": "JUAN JOSE MARES", "3": "CONSUELO NAVARRO", "4": "LAURA ALVARADO", "5": "MIGUEL GARCIA", "6": "LIZETTE DIAZ", "7": "ELIZABETH GARCIA", "8": "ARTURO ARANDA", "9": "SEBASTIAN GARCIA", "10": "LUIS ALVARADO", "11": "BRENDA ALVARADO", "12": "LEXY ALVARADO", "13": "ANTONIA CARDENAS", "14": "SAUL MARES", "15": "MARIA MARES", "16": "ESPERANZA MARES", "17": "HUMBERTO RUVALCABA", "18": "DIANA RUVALCABA", "19": "MOISES SANCHEZ", "20": "DYLAN RUVALCABA", "21": "CARLOS RUVALCABA", "22": "AHTZIRI CASAS", "23": "NOEMI MAZAYANI"}, "m9": {"1": "LAURA RUVALCABA", "2": "GUADALUPE RUVALCABA", "3": "LORENA RUVALCABA", "4": "OSCAR MERCADO", "5": "YUVIANA MERCADO", "6": "ALEXANDER MERCADO", "7": "MAYRA RUBALCABA", "8": "JOSE EDUARDO", "9": "VANIA", "10": "ADRIANA TORRES", "11": "PEDRO", "12": "SANTIAGO"}, "m10": {"1": "RICARDO RUVALCABA", "2": "FERNANDO RUVALCABA", "3": "ATZIRI DIAZ", "4": "JUAN LUIS MARES", "5": "JOEL GODOY", "6": "TOÑITO MARES", "7": "FANNY", "8": "BRAYAN", "9": "ROSA ANGELICA", "10": "MICHEL AYON", "11": "IVAN GUERRERO", "12": "YOVANI GUERRERO", "13": "EDGAR", "14": "MONTSE", "15": "ATZIRI RUVALCABA", "16": "YADIRA LOPEZ", "17": "NOVIO DE YADI", "18": "YOHANA LOPEZ", "19": "ALEJANDRA", "20": "MARLENE"}, "m11": {"1": "ANTONIA MARES", "2": "ANTONIO GODOY", "3": "JANETH GODOY", "4": "LUPITA GUERRERO", "5": "VICTOR", "6": "CARLITOS", "7": "ELVIA MARES", "8": "RAFAEL GUERRERO", "9": "ESMERALDA GUERRERO", "10": "ALEJANDRA GUERRERO", "11": "ANTONIO MARES", "12": "AURELIO GUERRERO"}, "m12": {"1": "KARLA OSUNA", "2": "LAURA RODRIGUEZ", "3": "JUAN CARLOS OSUNA", "4": "FERNANDO MADERA", "5": "MOISES RAMIREZ", "6": "CITLALLI CHOLICO", "7": "ANDREA CHAVARRIA", "8": "DAVID", "9": "ARLETTE", "10": "MAMA DE ANDREA", "11": "FABIOLA VALENCIA", "12": "VALERY VIRGEN"}, "m13": {"1": "CIELO SANCHEZ", "2": "CITLALLI ESCOBEDO", "3": "LIVIER SANCHEZ", "4": "JORGE", "5": "JENIFER ORTIZ", "6": "VANESSA CORONA", "7": "OMAR", "8": "MANUEL", "9": "DANISSA"}, "m14": {"1": "PRISCILA LOZA", "2": "NAYELY CHAVEZ", "3": "ENRIQUE", "4": "ANDREA", "5": "URIEL", "6": "ROXANA EVANGELISTA", "7": "OSWALDO VIRGEN", "8": "ANA", "9": "ENRIQUE", "10": "ESTHEFANIA RODRIGUEZ", "11": "SERGIO CHAVEZ", "12": "ARANTXA CISNEROS"}};
+  var CAPITANES_PRECARGA = {"m1": {"1": true, "4": true}, "m2": {"7": true}, "m3": {"9": true, "10": true}, "m4": {"6": true, "9": true}, "m5": {"11": true}, "m7": {"5": true, "14": true}, "m8": {"5": true}, "m9": {"3": true}, "m10": {"1": true, "2": true, "4": true, "20": true}, "m11": {"12": true}, "m12": {"1": true}, "m13": {"1": true}, "m14": {"4": true}};
 
   var MESAS = [];           // definición actual de mesas
   var ASIGNACION = {};      // id_familia -> id_mesa
@@ -934,7 +950,7 @@
 
   // Versión del acomodo. Al subir una nueva, se aplica el plano y los nombres
   // del lado novia aunque el navegador tenga datos viejos de prueba.
-  var MESAS_VERSION = "novia-2026-11-1";
+  var MESAS_VERSION = "completo-2026-11-13";
 
   function cargarMesas(){
     var versionGuardada = localStorage.getItem("mesas_version");
@@ -944,8 +960,9 @@
       // reset forzado: plano oficial + nombres del lado novia
       MESAS  = JSON.parse(JSON.stringify(MESAS_DEFAULT));
       SILLAS = JSON.parse(JSON.stringify(SILLAS_PRECARGA));
+      CAPITANES = (typeof CAPITANES_PRECARGA !== "undefined") ? JSON.parse(JSON.stringify(CAPITANES_PRECARGA)) : {};
       try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
-      try { CAPITANES = JSON.parse(localStorage.getItem("mesas_capitanes") || "{}"); } catch(e){ CAPITANES = {}; }
+      localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
       localStorage.setItem("mesas_def", JSON.stringify(MESAS));
       localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
       localStorage.setItem("mesas_version", MESAS_VERSION);
@@ -1077,8 +1094,9 @@
       var num = i + 1;
       var ocupada = hayNombres ? !!nombresMesa[num] : (i < oc.total);
       var cap = esCapitan(m.id, num);
+      var resalta = personaSel && personaSel.mesaId === m.id && personaSel.silla === num;
       var s = document.createElement("span");
-      s.className = "silla" + (ocupada ? " ocupada" : "") + (cap ? " capitan" : "");
+      s.className = "silla" + (ocupada ? " ocupada" : "") + (cap ? " capitan" : "") + (resalta ? " resaltada" : "");
       s.style.left = pos.x + "%";
       s.style.top  = pos.y + "%";
       s.textContent = num;
@@ -1092,19 +1110,10 @@
     el.type = "button";
     el.className = "mesa " + m.tipo +
                    (oc.total >= m.cap ? " llena" : (oc.total === 0 ? " vacia" : ""));
-    if (famSel) el.classList.add("destino");
     el.innerHTML = "<span class='m-nom'>" + escapar(m.nombre) + "</span>" +
                    (m.sub ? "<span class='m-sub'>" + escapar(m.sub) + "</span>" : "") +
                    "<span class='m-ocupado'>" + oc.total + "/" + m.cap + "</span>";
-    el.addEventListener("click", function(){
-      if (famSel) {
-        asignar(famSel, m.id);
-        famSel = null;
-        pintarFamilias(); pintarMapa();
-      } else {
-        abrirDetalle(m);
-      }
-    });
+    el.addEventListener("click", function(){ abrirDetalle(m); });
     wrap.appendChild(el);
     return wrap;
   }
@@ -1164,34 +1173,72 @@
     localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
   }
 
+  // lista de TODAS las personas sentadas (desde SILLAS), con su mesa y silla
+  function personasArr(){
+    var arr = [];
+    MESAS.forEach(function(m){
+      var nombres = SILLAS[m.id] || {};
+      Object.keys(nombres).forEach(function(num){
+        if (!nombres[num]) return;
+        arr.push({
+          nombre: nombres[num],
+          mesaId: m.id,
+          mesaNom: m.nombre,
+          silla: Number(num),
+          capitan: esCapitan(m.id, num),
+          lado: (parseInt(m.id.replace("m",""),10) <= 7) ? "novio" : "novia"
+        });
+      });
+    });
+    return arr;
+  }
+
+  var personaSel = null;   // {mesaId, silla} resaltada en el mapa
+
   function pintarFamilias(){
     var cont = $("#lista-familias");
     if (!cont) return;
     var filtro = $("#filtro-familias").value;
     var q = ($("#buscar-familia").value || "").toLowerCase();
-    var fams = familiasArr().filter(function(f){
-      if (filtro === "sin" && f.mesa) return false;
-      if (filtro === "si" && !f.confirmo) return false;
-      if (q && f.nombre.toLowerCase().indexOf(q) === -1) return false;
+    var gente = personasArr().filter(function(p){
+      if (filtro === "capitan" && !p.capitan) return false;
+      if (filtro === "novio" && p.lado !== "novio") return false;
+      if (filtro === "novia" && p.lado !== "novia") return false;
+      if (q && p.nombre.toLowerCase().indexOf(q) === -1) return false;
       return true;
     }).sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
 
     cont.innerHTML = "";
-    fams.forEach(function(f){
+    gente.forEach(function(p){
+      var sel = personaSel && personaSel.mesaId === p.mesaId && personaSel.silla === p.silla;
       var chip = document.createElement("div");
-      chip.className = "fam-chip" + (famSel === f.id ? " sel" : "");
-      var pases = f.confirmo ? (f.asientos + " conf.") : (f.asientos + " res.");
-      var mesaNom = f.mesa ? nombreMesa(f.mesa) : "";
-      chip.innerHTML = "<span>" + escapar(f.nombre) + "</span>" +
-        "<span>" + (mesaNom ? "<span class='fam-mesa'>" + escapar(mesaNom) + "</span> " : "") +
-        "<span class='fam-pases'>" + pases + "</span></span>";
+      chip.className = "fam-chip" + (sel ? " sel" : "") + (p.capitan ? " es-cap" : "");
+      chip.innerHTML = "<span>" + (p.capitan ? "<span class='chip-cap'>♛</span> " : "") + escapar(p.nombre) + "</span>" +
+        "<span class='fam-mesa'>" + escapar(p.mesaNom) + " · " + p.silla + "</span>";
       chip.addEventListener("click", function(){
-        famSel = (famSel === f.id) ? null : f.id;
+        personaSel = (sel) ? null : { mesaId: p.mesaId, silla: p.silla };
         pintarFamilias(); pintarMapa();
+        // abrir el detalle de la mesa de esa persona
+        if (personaSel) {
+          var m = MESAS.filter(function(x){ return x.id === p.mesaId; })[0];
+          if (m) abrirDetalle(m);
+        }
       });
       cont.appendChild(chip);
     });
-    if (!fams.length) cont.innerHTML = "<p class='nota'>Sin familias para mostrar. Carga tu Excel en \"Lista e invitaciones\".</p>";
+    if (!gente.length) cont.innerHTML = "<p class='nota'>No hay personas que coincidan. Si está vacío, revisa que el acomodo esté cargado.</p>";
+    actualizarResumen();
+  }
+
+  function actualizarResumen(){
+    var gente = personasArr();
+    var totalLugares = MESAS.reduce(function(a,m){ return a + m.cap; }, 0);
+    var sentados = gente.length;
+    var caps = gente.filter(function(p){ return p.capitan; }).length;
+    if ($("#r-sentados")) $("#r-sentados").textContent = sentados;
+    if ($("#r-lugares")) $("#r-lugares").textContent = totalLugares;
+    if ($("#r-libres")) $("#r-libres").textContent = totalLugares - sentados;
+    if ($("#r-capitanes")) $("#r-capitanes").textContent = caps;
   }
 
   function nombreMesa(mid){
@@ -1244,15 +1291,18 @@
     var nombresMesa = SILLAS[m.id] || {};
     for (var i = 1; i <= m.cap; i++){
       (function(num){
+        var nom = nombresMesa[num] || "";
+        var sel = personaSel && personaSel.mesaId === m.id && personaSel.silla === num;
         var fila = document.createElement("div");
-        fila.className = "silla-fila";
+        fila.className = "silla-fila" + (sel ? " resaltada-fila" : "");
         var lbl = document.createElement("span");
         lbl.className = "silla-num";
         lbl.textContent = num;
+        // nombre (editable, por si hay que corregir algo)
         var inp = document.createElement("input");
         inp.type = "text";
-        inp.placeholder = "Silla " + num;
-        inp.value = nombresMesa[num] || "";
+        inp.placeholder = "Silla " + num + " · libre";
+        inp.value = nom;
         inp.addEventListener("input", function(){
           if (!SILLAS[m.id]) SILLAS[m.id] = {};
           if (inp.value.trim()) SILLAS[m.id][num] = inp.value.trim();
@@ -1260,6 +1310,7 @@
           localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
           localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
           btnCap.classList.toggle("activo", esCapitan(m.id, num));
+          actualizarResumen();
         });
         // botón de capitán (corona)
         var esCap = esCapitan(m.id, num);
@@ -1269,13 +1320,13 @@
         btnCap.title = "Marcar como capitán de mesa";
         btnCap.innerHTML = "♛";
         btnCap.addEventListener("click", function(){
-          if (!inp.value.trim()) { inp.focus(); return; } // solo si hay nombre
+          if (!inp.value.trim()) { inp.focus(); return; }
           if (!CAPITANES[m.id]) CAPITANES[m.id] = {};
           if (esCapitan(m.id, num)) delete CAPITANES[m.id][num];
           else CAPITANES[m.id][num] = true;
           localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
           btnCap.classList.toggle("activo", esCapitan(m.id, num));
-          pintarMapa();
+          pintarMapa(); actualizarResumen();
         });
         fila.appendChild(lbl);
         fila.appendChild(inp);
