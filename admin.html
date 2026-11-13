@@ -201,6 +201,12 @@
   .silla-num{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:1px solid var(--linea);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--laton)}
   .silla-fila input{flex:1;background:var(--olivo-hondo);border:1px solid var(--linea);color:var(--marfil);padding:.45rem .6rem;font-family:var(--cuerpo);font-size:.86rem;border-radius:3px}
   .silla-fila input:focus{border-color:var(--laton);outline:none}
+  .btn-capitan{flex-shrink:0;width:30px;height:30px;border-radius:6px;border:1px solid var(--linea);background:transparent;color:var(--tenue);font-size:1rem;cursor:pointer;transition:all .2s;line-height:1}
+  .btn-capitan:hover{border-color:var(--laton);color:var(--laton)}
+  .btn-capitan.activo{background:var(--laton);border-color:var(--laton);color:var(--olivo-hondo)}
+  /* silla capitán en el mapa */
+  .silla.capitan{background:#d9a94e;border-color:#fff;box-shadow:0 0 0 2px rgba(217,169,78,.5)}
+  .silla.capitan::after{content:"♛";position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:8px;color:#d9a94e}
   .cerrar-detalle{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:var(--marfil);font-size:1.6rem;cursor:pointer;line-height:1}
   .mesa-detalle h3{font-family:var(--display);color:var(--marfil);margin:0 0 .3rem}
   .detalle-cupo{color:var(--laton);font-size:.8rem;margin-bottom:1rem}
@@ -414,6 +420,7 @@
         <div class="panel-mapa">
           <div class="mapa-acciones">
             <button class="btn solido mini" id="btn-guardar-mesas">Guardar cambios</button>
+            <button class="btn mini" id="btn-descargar-excel">Descargar Excel</button>
             <button class="btn mini" id="btn-descargar-checkin">Descargar para check-in</button>
             <button class="btn mini" id="btn-editar-mesas">Editar mesas</button>
             <span class="nota" id="aviso-mesas"></span>
@@ -922,6 +929,7 @@
   var MESAS = [];           // definición actual de mesas
   var ASIGNACION = {};      // id_familia -> id_mesa
   var SILLAS = {};          // id_mesa -> { numero_silla: "nombre" }
+  var CAPITANES = {};       // id_mesa -> { numero_silla: true }  (capitanes marcados)
   var famSel = null;        // familia seleccionada para asignar
 
   // Versión del acomodo. Al subir una nueva, se aplica el plano y los nombres
@@ -937,6 +945,7 @@
       MESAS  = JSON.parse(JSON.stringify(MESAS_DEFAULT));
       SILLAS = JSON.parse(JSON.stringify(SILLAS_PRECARGA));
       try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
+      try { CAPITANES = JSON.parse(localStorage.getItem("mesas_capitanes") || "{}"); } catch(e){ CAPITANES = {}; }
       localStorage.setItem("mesas_def", JSON.stringify(MESAS));
       localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
       localStorage.setItem("mesas_version", MESAS_VERSION);
@@ -947,6 +956,7 @@
       } catch(e){ MESAS = JSON.parse(JSON.stringify(MESAS_DEFAULT)); }
       try { ASIGNACION = JSON.parse(localStorage.getItem("mesas_asig") || "{}"); } catch(e){ ASIGNACION = {}; }
       try { SILLAS = JSON.parse(localStorage.getItem("mesas_sillas") || "{}"); } catch(e){ SILLAS = {}; }
+      try { CAPITANES = JSON.parse(localStorage.getItem("mesas_capitanes") || "{}"); } catch(e){ CAPITANES = {}; }
       if (!Object.keys(SILLAS).length && typeof SILLAS_PRECARGA !== "undefined") {
         SILLAS = JSON.parse(JSON.stringify(SILLAS_PRECARGA));
         localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
@@ -966,6 +976,10 @@
           if (d.ok && d.sillas && Object.keys(d.sillas).length) {
             SILLAS = d.sillas;
             localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+          }
+          if (d.ok && d.capitanes) {
+            CAPITANES = d.capitanes;
+            localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
           }
           pintarMapa(); pintarFamilias();
         }).catch(function(){});
@@ -1062,12 +1076,13 @@
     posicionesSillas(m).forEach(function(pos, i){
       var num = i + 1;
       var ocupada = hayNombres ? !!nombresMesa[num] : (i < oc.total);
+      var cap = esCapitan(m.id, num);
       var s = document.createElement("span");
-      s.className = "silla" + (ocupada ? " ocupada" : "");
+      s.className = "silla" + (ocupada ? " ocupada" : "") + (cap ? " capitan" : "");
       s.style.left = pos.x + "%";
       s.style.top  = pos.y + "%";
       s.textContent = num;
-      if (nombresMesa[num]) s.title = nombresMesa[num];
+      if (nombresMesa[num]) s.title = nombresMesa[num] + (cap ? " (Capitán)" : "");
       sillas.appendChild(s);
     });
     wrap.appendChild(sillas);
@@ -1241,17 +1256,47 @@
         inp.addEventListener("input", function(){
           if (!SILLAS[m.id]) SILLAS[m.id] = {};
           if (inp.value.trim()) SILLAS[m.id][num] = inp.value.trim();
-          else delete SILLAS[m.id][num];
+          else { delete SILLAS[m.id][num]; if (CAPITANES[m.id]) delete CAPITANES[m.id][num]; }
           localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+          localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
+          btnCap.classList.toggle("activo", esCapitan(m.id, num));
+        });
+        // botón de capitán (corona)
+        var esCap = esCapitan(m.id, num);
+        var btnCap = document.createElement("button");
+        btnCap.type = "button";
+        btnCap.className = "btn-capitan" + (esCap ? " activo" : "");
+        btnCap.title = "Marcar como capitán de mesa";
+        btnCap.innerHTML = "♛";
+        btnCap.addEventListener("click", function(){
+          if (!inp.value.trim()) { inp.focus(); return; } // solo si hay nombre
+          if (!CAPITANES[m.id]) CAPITANES[m.id] = {};
+          if (esCapitan(m.id, num)) delete CAPITANES[m.id][num];
+          else CAPITANES[m.id][num] = true;
+          localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
+          btnCap.classList.toggle("activo", esCapitan(m.id, num));
+          pintarMapa();
         });
         fila.appendChild(lbl);
         fila.appendChild(inp);
+        fila.appendChild(btnCap);
         grid.appendChild(fila);
       })(i);
     }
     cont.appendChild(grid);
 
     $("#mesa-detalle").hidden = false;
+  }
+
+  function esCapitan(mid, num){
+    return !!(CAPITANES[mid] && CAPITANES[mid][num]);
+  }
+  function totalCapitanes(){
+    var t = 0;
+    Object.keys(CAPITANES).forEach(function(mid){
+      Object.keys(CAPITANES[mid]).forEach(function(n){ if (CAPITANES[mid][n]) t++; });
+    });
+    return t;
   }
 
   if ($("#cerrar-detalle")) $("#cerrar-detalle").addEventListener("click", function(){ $("#mesa-detalle").hidden = true; });
@@ -1264,11 +1309,12 @@
     $("#aviso-mesas").textContent = "Guardando…";
     localStorage.setItem("mesas_asig", JSON.stringify(ASIGNACION));
     localStorage.setItem("mesas_sillas", JSON.stringify(SILLAS));
+    localStorage.setItem("mesas_capitanes", JSON.stringify(CAPITANES));
     localStorage.setItem("mesas_def", JSON.stringify(MESAS));
     if (CONFIG.URL_SCRIPT.indexOf("http") !== 0) { $("#aviso-mesas").textContent = "Guardado local (configura la URL para sincronizar)."; return; }
     fetch(CONFIG.URL_SCRIPT, {
       method: "POST",
-      body: JSON.stringify({ accion: "guardar_mesas", token: CONFIG.TOKEN, asignacion: ASIGNACION, sillas: SILLAS })
+      body: JSON.stringify({ accion: "guardar_mesas", token: CONFIG.TOKEN, asignacion: ASIGNACION, sillas: SILLAS, capitanes: CAPITANES })
     }).then(function(r){ return r.json(); })
       .then(function(d){ $("#aviso-mesas").textContent = d.ok ? "Guardado ✓" : ("Error: " + (d.error||"")); })
       .catch(function(){ $("#aviso-mesas").textContent = "Se guardó local, pero no se pudo sincronizar (revisa la conexión)."; });
@@ -1292,13 +1338,62 @@
   });
 
   // descargar archivo de check-in (para usar sin internet en el salón)
+  // descargar Excel con el acomodo actual (hojas editables)
+  if ($("#btn-descargar-excel")) $("#btn-descargar-excel").addEventListener("click", function(){
+    if (typeof XLSX === "undefined") { $("#aviso-mesas").textContent = "No se pudo cargar el generador de Excel."; return; }
+    var libro = XLSX.utils.book_new();
+
+    // Hoja 1: Acomodo completo (mesa, tipo, silla, invitado, capitán)
+    var fil1 = [["Mesa","Tipo","Silla","Invitado","Capitán"]];
+    MESAS.forEach(function(m){
+      var nombres = SILLAS[m.id] || {};
+      for (var i = 1; i <= m.cap; i++){
+        fil1.push([m.nombre, m.sub || "", i, nombres[i] || "", esCapitan(m.id, i) ? "SÍ" : ""]);
+      }
+    });
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.aoa_to_sheet(fil1), "Acomodo completo");
+
+    // Hoja de Capitanes
+    var filCap = [["Capitán","Mesa","Silla"]];
+    MESAS.forEach(function(m){
+      var nombres = SILLAS[m.id] || {};
+      for (var j = 1; j <= m.cap; j++){
+        if (esCapitan(m.id, j) && nombres[j]) filCap.push([nombres[j], m.nombre, j]);
+      }
+    });
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.aoa_to_sheet(filCap), "Capitanes");
+
+    // Hoja 2: Resumen por mesa
+    var fil2 = [["Mesa","Tipo","Capacidad","Ocupados","Libres"]];
+    MESAS.forEach(function(m){
+      var ocup = Object.keys(SILLAS[m.id] || {}).filter(function(k){ return (SILLAS[m.id]||{})[k]; }).length;
+      fil2.push([m.nombre, m.sub || "", m.cap, ocup, m.cap - ocup]);
+    });
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.aoa_to_sheet(fil2), "Resumen");
+
+    // Hoja 3: Lista alfabética
+    var lista = [];
+    MESAS.forEach(function(m){
+      var nombres = SILLAS[m.id] || {};
+      Object.keys(nombres).forEach(function(num){
+        if (nombres[num]) lista.push([nombres[num], m.nombre, Number(num)]);
+      });
+    });
+    lista.sort(function(a,b){ return String(a[0]).localeCompare(String(b[0])); });
+    var fil3 = [["Invitado","Mesa","Silla"]].concat(lista);
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.aoa_to_sheet(fil3), "Lista alfabética");
+
+    XLSX.writeFile(libro, "Acomodo-Mesas-Monse-Noel.xlsx");
+    $("#aviso-mesas").textContent = "Excel descargado con el acomodo actual.";
+  });
+
   if ($("#btn-descargar-checkin")) $("#btn-descargar-checkin").addEventListener("click", function(){
     var datos = {
       generado: new Date().toISOString(),
       evento: "Boda Monserrat & Noel — 15 nov 2026",
       mesas: MESAS,
       invitados: familiasArr().map(function(f){
-        return { id: f.id, nombre: f.nombre, pases: (f.confirma != null ? f.confirma : f.pases), grupo: f.grupo, mesa: f.mesa, mesa_nombre: f.mesa ? nombreMesa(f.mesa) : "" };
+        return { id: f.id, nombre: f.nombre, pases: f.asientos, grupo: f.grupo, mesa: f.mesa, mesa_nombre: f.mesa ? nombreMesa(f.mesa) : "" };
       })
     };
     var blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
